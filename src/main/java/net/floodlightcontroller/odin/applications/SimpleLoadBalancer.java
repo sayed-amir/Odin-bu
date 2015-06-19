@@ -13,6 +13,7 @@ import net.floodlightcontroller.util.MACAddress;
 
 public class SimpleLoadBalancer extends OdinApplication {
 
+	/*do the balancing every minute*/
 	private final int INTERVAL = 60000;
 	private final int SIGNAL_THRESHOLD = 160;
 
@@ -39,6 +40,9 @@ public class SimpleLoadBalancer extends OdinApplication {
 				 * We define "able to hear" as "signal strength > SIGNAL_THRESHOLD".
 				 * 
 				 *  We then build the hearing table.
+				 *
+				 * Note that the hearing table may not match the current distribution
+				 *of clients between the APs
 				 */
 				for (InetAddress agentAddr: getAgents()) {
 					Map<MACAddress, Map<String, String>> vals = getRxStatsFromAgent(agentAddr);
