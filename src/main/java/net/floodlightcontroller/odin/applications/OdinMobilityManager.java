@@ -78,8 +78,11 @@ public class OdinMobilityManager extends OdinApplication {
 	private void handler (OdinEventSubscription oes, NotificationCallbackContext cntx) {
 		// Check to see if this is a client we're tracking
 		OdinClient client = getClientFromHwAddress(cntx.clientHwAddress);
-		log.debug("Mobility manager: notification from " + cntx.clientHwAddress
+		
+		// comment the next line or you will have a log message every packet of the STA
+		/*log.debug("Mobility manager: notification from " + cntx.clientHwAddress
 				+ " from agent " + cntx.agent.getIpAddress() + " val: " + cntx.value + " at " + System.currentTimeMillis());
+		*/
 		
 		/* The client is not registered in Odin, exit */
 		if (client == null)
