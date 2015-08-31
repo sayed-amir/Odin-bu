@@ -168,8 +168,10 @@ public class SimpleLoadBalancer extends OdinApplication {
 			if (minNode == null)
 				continue;
 			
-			/* I move the client to another AP */
-			/* FIXME: check if this has to be done if we are moving a client to the AP where it already is */
+			/* I move the client to another AP
+			* see the definition of the function in OdinMaster.java (~/floodlightcontroller/odin/master)
+			* If the client is already associated with the AP, the function will ignore
+			 * the request. */
 			handoffClientToAp(client.getMacAddress(), minNode);
 			
 			/* increase the number of clients associated to that agent (the one with the fewest number of clients) */
