@@ -17,7 +17,8 @@ import net.floodlightcontroller.odin.master.OdinEventSubscription.Relation;
 import net.floodlightcontroller.util.MACAddress;
 
 public class OdinMobilityManager extends OdinApplication {
-	protected static Logger log = LoggerFactory.getLogger(OdinMobilityManager.class);	
+	protected static Logger log = LoggerFactory.getLogger(OdinMobilityManager.class);
+	// a table including each client and its mobility statistics
 	private ConcurrentMap<MACAddress, MobilityStats> clientMap = new ConcurrentHashMap<MACAddress, MobilityStats> ();
 	private final long HYSTERESIS_THRESHOLD; // milliseconds
 	private final long IDLE_CLIENT_THRESHOLD; // milliseconds
@@ -41,6 +42,11 @@ public class OdinMobilityManager extends OdinApplication {
 	 */
 	private void init () {
 		OdinEventSubscription oes = new OdinEventSubscription();
+		
+		/* a mobility manager can register a subscription ("*","signal", GREATER_THAN, 180)
+		*/
+		// FIXME: Add something in order to subscribe the new STA associated to Odin
+		// perhaps this can be done in the agent
 		oes.setSubscription("00:0B:6B:84:B2:87", "signal", Relation.GREATER_THAN, 160);		
 		
 		NotificationCallback cb = new NotificationCallback() {
@@ -75,19 +81,24 @@ public class OdinMobilityManager extends OdinApplication {
 		log.debug("Mobility manager: notification from " + cntx.clientHwAddress
 				+ " from agent " + cntx.agent.getIpAddress() + " val: " + cntx.value + " at " + System.currentTimeMillis());
 		
+		/* The client is not registered in Odin, exit */
 		if (client == null)
 			return;
 				
 		long currentTimestamp = System.currentTimeMillis();
 		
 		// Assign mobility stats object if not already done
+		// add an entry in the clientMap table for this client MAC
+		// put the statistics in the table: value of the parameter, timestamp, timestamp
 		if (!clientMap.containsKey(cntx.clientHwAddress)) {
 			clientMap.put(cntx.clientHwAddress, new MobilityStats(cntx.value, currentTimestamp, currentTimestamp));
 		}
 		
+		// get the statistics of that client
 		MobilityStats stats = clientMap.get(cntx.clientHwAddress);
 		
-		// If client hasn't been assigned an agent, do so
+		// The client is associated to Odin (it has an LVAP), but it does not have an associated agent
+		// If client hasn't been assigned an agent, associate it to the current AP
 		if (client.getLvap().getAgent() == null) {
 			log.info("Mobility manager: handing off client " + cntx.clientHwAddress
 									+ " to agent " + cntx.agent.getIpAddress() + " at " + System.currentTimeMillis());
@@ -97,6 +108,7 @@ public class OdinMobilityManager extends OdinApplication {
 		}
 		
 		// Check for out-of-range client
+		// a client has sent nothing during a certain time
 		if ((currentTimestamp - stats.lastHeard) > IDLE_CLIENT_THRESHOLD) {
 			log.info("Mobility manager: handing off client " + cntx.clientHwAddress
 					+ " to agent " + cntx.agent.getIpAddress() + " at " + System.currentTimeMillis());
@@ -117,6 +129,8 @@ public class OdinMobilityManager extends OdinApplication {
 				return;
 			
 			// We're outside the hysteresis period, so compare signal strengths for a handoff
+			// I check if the strength is higher (THRESHOLD) than the last measurement stored the
+			// last time in the other AP
 			if (cntx.value >= stats.signalStrength + SIGNAL_STRENGTH_THRESHOLD) {
 				log.info("Mobility manager: handing off client " + cntx.clientHwAddress
 						+ " to agent " + cntx.agent.getIpAddress() + " at " + System.currentTimeMillis());
@@ -136,8 +150,8 @@ public class OdinMobilityManager extends OdinApplication {
 	
 	private class MobilityStats {
 		public long signalStrength;
-		public long lastHeard;
-		public long assignmentTimestamp;
+		public long lastHeard;			// timestamp where it was heard the last time
+		public long assignmentTimestamp;	// timestamp it was assigned
 		
 		public MobilityStats (long signalStrength, long lastHeard, long assignmentTimestamp) {
 			this.signalStrength = signalStrength;
