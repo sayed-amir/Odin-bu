@@ -24,6 +24,8 @@ public class OdinMobilityManager extends OdinApplication {
 	private final long IDLE_CLIENT_THRESHOLD; // milliseconds
 	private final long SIGNAL_STRENGTH_THRESHOLD; // dbm
 
+	private final int INTERVAL = 40000; // time before running the application. This leaves you some time for starting the agents
+
 	public OdinMobilityManager () {
 		this.HYSTERESIS_THRESHOLD = 3000;
 		this.IDLE_CLIENT_THRESHOLD = 4000;
@@ -56,12 +58,21 @@ public class OdinMobilityManager extends OdinApplication {
 				handler(oes, cntx);
 			}
 		};
-		
+	
+		/* Before executing this line, make sure the agents declared in poolfile are started */	
 		registerSubscription(oes, cb);
 	}
 	
 	@Override
 	public void run() {
+		
+		/* when the application runs, you need some time to start the agents */
+		try {
+			Thread.sleep(INTERVAL);
+		} catch (InterruptedException e){
+        		e.printStackTrace();
+		}
+
 		init (); 
 		
 		// Purely reactive, so end.
