@@ -1,0 +1,10 @@
+# Pool-1
+NAME pool-1
+NODES 192.168.1.5 192.168.1.6
+NETWORKS odin-unizar
+APPLICATIONS net.floodlightcontroller.odin.applications.SimpleLoadBalancer
+
+# Pool-2
+NAME pool-2
+NODES 192.168.1.5 192.168.1.6
+NETWORKS odin-unizar
