@@ -1,0 +1,11 @@
+# Pool-1
+NAME pool-1
+NODES 172.16.250.52 127.0.0.1
+NETWORKS odin-fran
+APPLICATIONS net.floodlightcontroller.odin.applications.OdinMobilityManager
+
+# Pool-2
+# NAME pool-2
+# NODES 172.17.1.29 172.17.1.37 172.17.1.45
+# NETWORKS guest-network
+# APPLICATIONS net.floodlightcontroller.odin.applications.SimpleLoadBalancer

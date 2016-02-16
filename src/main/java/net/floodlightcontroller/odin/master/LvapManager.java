@@ -65,11 +65,11 @@ public class LvapManager {
 			flow2.setActions(actionList);
 	        flow2.setLength(U16.t(OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH));
 		}
-		
+	
 		ArrayList<OFMessage> list = new ArrayList<OFMessage>();
 		
-		list.add(flow1);
-		list.add(flow2);
+//		list.add(flow1);
+//		list.add(flow2);
 		
 		return list;
 	}
