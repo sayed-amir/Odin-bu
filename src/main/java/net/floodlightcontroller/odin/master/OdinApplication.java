@@ -4,7 +4,7 @@ import java.net.InetAddress;
 import java.util.Map;
 import java.util.Set;
 
-import net.floodlightcontroller.odin.master.IOdinApplicationInterface;
+import net.floodlightcontroller.odin.master.IOdinMasterToApplicationInterface;
 import net.floodlightcontroller.odin.master.NotificationCallback;
 import net.floodlightcontroller.odin.master.OdinClient;
 import net.floodlightcontroller.odin.master.OdinEventSubscription;
@@ -20,15 +20,15 @@ import net.floodlightcontroller.util.MACAddress;
  */
 public abstract class OdinApplication implements Runnable {
 
-	private IOdinApplicationInterface odinApplicationInterface;
+	private IOdinMasterToApplicationInterface odinApplicationInterfaceToMaster;
 	private String pool;
 	
 	
 	/**
 	 * Set the OdinMaster to use
 	 */
-	final void setOdinInterface (IOdinApplicationInterface om) {
-		odinApplicationInterface = om;
+	final void setOdinInterface (IOdinMasterToApplicationInterface om) {
+		odinApplicationInterfaceToMaster = om;
 	}
 	
 	
@@ -55,7 +55,7 @@ public abstract class OdinApplication implements Runnable {
 	 * @param hwAddrSta Ethernet address of STA to be handed off
 	 */
 	protected final void handoffClientToAp (MACAddress staHwAddr, InetAddress newApIpAddr) {
-		odinApplicationInterface.handoffClientToAp(pool, staHwAddr, newApIpAddr);
+		odinApplicationInterfaceToMaster.handoffClientToAp(pool, staHwAddr, newApIpAddr);
 	}
 
 	
@@ -65,7 +65,7 @@ public abstract class OdinApplication implements Runnable {
 	 * @return a map of OdinClient objects keyed by HW Addresses
 	 */
 	protected final Set<OdinClient> getClients () {
-		return odinApplicationInterface.getClients(pool);		
+		return odinApplicationInterfaceToMaster.getClients(pool);		
 	}
 	
 	
@@ -75,7 +75,7 @@ public abstract class OdinApplication implements Runnable {
 	 * @return a OdinClient instance corresponding to clientHwAddress
 	 */
 	protected final OdinClient getClientFromHwAddress (MACAddress clientHwAddress) {
-		return odinApplicationInterface.getClientFromHwAddress(pool, clientHwAddress);
+		return odinApplicationInterfaceToMaster.getClientFromHwAddress(pool, clientHwAddress);
 	}
 	
 	
@@ -87,7 +87,7 @@ public abstract class OdinApplication implements Runnable {
 	 * @return Key-Value entries of each recorded statistic for each client 
 	 */
 	protected final Map<MACAddress, Map<String, String>> getRxStatsFromAgent (InetAddress agentAddr) {
-		return odinApplicationInterface.getRxStatsFromAgent(pool, agentAddr);
+		return odinApplicationInterfaceToMaster.getRxStatsFromAgent(pool, agentAddr);
 	}
 	
 	/**
@@ -95,7 +95,7 @@ public abstract class OdinApplication implements Runnable {
 	 * @return a map of OdinAgent objects keyed by Ipv4 addresses
 	 */
 	protected final Set<InetAddress> getAgents () {
-		return odinApplicationInterface.getAgentAddrs(pool);
+		return odinApplicationInterfaceToMaster.getAgentAddrs(pool);
 	}
 	
 	
@@ -110,7 +110,7 @@ public abstract class OdinApplication implements Runnable {
 	 * @param cb the callback
 	 */
 	protected final long registerSubscription (OdinEventSubscription oes, NotificationCallback cb){
-		return odinApplicationInterface.registerSubscription(pool, oes, cb);
+		return odinApplicationInterfaceToMaster.registerSubscription(pool, oes, cb);
 	}
 	
 	
@@ -121,7 +121,7 @@ public abstract class OdinApplication implements Runnable {
 	 * @return
 	 */
 	protected final void unregisterSubscription (long id) {
-		odinApplicationInterface.unregisterSubscription(pool, id);
+		odinApplicationInterfaceToMaster.unregisterSubscription(pool, id);
 	}
 	
 	
@@ -132,7 +132,7 @@ public abstract class OdinApplication implements Runnable {
 	 * @return true if the network could be added, false otherwise
 	 */
 	protected final boolean addNetwork (String ssid) {
-		return odinApplicationInterface.addNetwork(pool, ssid);
+		return odinApplicationInterfaceToMaster.addNetwork(pool, ssid);
 	}
 	
 	
@@ -143,6 +143,42 @@ public abstract class OdinApplication implements Runnable {
 	 * @return true if the network could be removed, false otherwise
 	 */
 	protected final boolean removeNetwork (String ssid) {
-		return odinApplicationInterface.removeNetwork(pool, ssid);
+		return odinApplicationInterfaceToMaster.removeNetwork(pool, ssid);
 	}
+	
+	/**
+	 * Change the Wi-Fi channel of an specific agent (AP)
+	 * 
+	 * @param Agent InetAddress
+	 * @param Channel
+	 */
+	protected final void setChannelToAgent (InetAddress agentAddr, int channel){
+		odinApplicationInterfaceToMaster.setChannelToAgent(pool, agentAddr, channel);
+	}
+	
+	
+	/**
+	 * Get channel from and specific agent (AP)
+	 * 
+	 * @param Agent InetAddress
+	 * @return Channel number
+	 */
+	protected final int getChannelFromAgent (InetAddress agentAddr){
+		return odinApplicationInterfaceToMaster.getChannelFromAgent(pool, agentAddr); 
+	}
+	
+	
+	/**
+	 * Channel Switch Announcement, to the clients of an specific agent (AP)
+	 * 
+	 * @param Agent InetAddress
+	 * @param Client MAC
+	 * @param SSID
+	 * @param Channel
+	 */
+	protected final void sendChannelSwitchToClient (InetAddress agentAddr, MACAddress clientHwAddr, String ssid, int channel){
+		odinApplicationInterfaceToMaster.sendChannelSwitchToClient(pool, agentAddr, clientHwAddr, ssid, channel);
+	}
+
+
 }

@@ -128,4 +128,39 @@ public interface IOdinAgent {
 	 * @param t timestamp to update lastHeard value
 	 */
 	public void setSubscriptions (String subscriptionList);
+	
+	
+	/**
+	 * Set the AP into a channel	
+	 *  
+	 * @param  Channel number
+	 * @author Luis Sequeira <sequeira@unizar.es>
+	 * 
+	 */
+	public void setChannel(int channel);
+	
+
+	/**
+	 * Get channel
+	 * 
+	 * @return Channel number
+	 * @author Luis Sequeira <sequeira@unizar.es>
+	 * 
+	 */
+	public int getChannel();
+	
+	
+	/**
+	 * Channel Switch Announcement to Client
+	 * 
+	 * @param Client MAC
+	 * @param BSSID
+	 * @param SSID list
+	 * @param Channel
+	 * @author Luis Sequeira <sequeira@unizar.es>
+	 * 
+	 */
+	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, Set<String> ssidList, int channel);
+	
+	
 }

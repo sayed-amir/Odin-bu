@@ -12,16 +12,17 @@ import net.floodlightcontroller.util.MACAddress;
 
 /**
  * 
- * Stub OdinAgent class to be used for testing. 
+ * Stub OdinAgent class to be used for testing. Wi5 NOTE: we introduce a new variable 
+ * channel to map the physical Wi-Fi channel used by the access point.
  * 
  * @author Lalith Suresh <suresh.lalith@gmail.com>
- *
  */
 class StubOdinAgent implements IOdinAgent {
 
 	private IOFSwitch sw = null;
 	private InetAddress ipAddr = null;
 	private long lastHeard;
+	private int channel; 
 	private ConcurrentSkipListSet<OdinClient> clientList = new ConcurrentSkipListSet<OdinClient>();
 	
 	@Override
@@ -92,5 +93,19 @@ class StubOdinAgent implements IOdinAgent {
 	@Override
 	public void sendProbeResponse(MACAddress clientHwAddr, MACAddress bssid,
 			Set<String> ssidLists) {
+	}
+	
+	@Override
+	public void setChannel(int channel) {
+		this.channel = channel;
+	}
+	
+	public int getChannel() {
+		return channel;
+	}
+	
+	@Override
+	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, Set<String> ssidList, int channel){
+		// Do nothing.
 	}
 }

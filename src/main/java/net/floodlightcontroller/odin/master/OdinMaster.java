@@ -50,7 +50,7 @@ import net.floodlightcontroller.util.MACAddress;
  * @author Lalith Suresh <suresh.lalith@gmail.com>
  *
  */
-public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinApplicationInterface, IOFMessageListener, IFloodlightService {
+public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMasterToApplicationInterface, IOFMessageListener, IFloodlightService {
 	protected static Logger log = LoggerFactory.getLogger(OdinMaster.class);
 	protected IRestApiService restApi;
 
@@ -196,7 +196,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinAp
 		 * If clients perform an active scan, generate
 		 * probe responses without spawning lvaps
 		 */
-		if (ssid.equals("")) {
+		if (ssid.equals("")) {   // FIXMeE:  Are you sure this is right, the client can delete the network.
 			// we just send probe responses
 			IOdinAgent agent = agentManager.getAgent(odinAgentAddr);
 			MACAddress bssid = poolManager.generateBssidForClient(clientHwAddress);
@@ -205,7 +205,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinAp
 			Set<String> ssidSet = new TreeSet<String> ();
 			for (String pool: poolManager.getPoolsForAgent(odinAgentAddr)) {
 
-				if (pool.equals(PoolManager.GLOBAL_POOL))
+				if (pool.equals(PoolManager.GLOBAL_POOL)) //???????
 					continue;
 
 				ssidSet.addAll(poolManager.getSsidListForPool(pool));
@@ -230,7 +230,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinAp
 					List<String> ssidList = new ArrayList<String> ();
 					ssidList.addAll(poolManager.getSsidListForPool(pool));
 
-					Lvap lvap = new Lvap (poolManager.generateBssidForClient(clientHwAddress), ssidList);
+					Lvap lvap = new Lvap (poolManager.generateBssidForClient(clientHwAddress), ssidList); 
+					//FIXME: WHy not before also? -- because only when you connect to the network u store it.
 
 					try {
 						oc = new OdinClient(clientHwAddress, InetAddress.getByName("0.0.0.0"), lvap);
@@ -248,9 +249,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinAp
 					// first time, had explicitly
 					// disconnected, or knocked
 					// out at as a result of an agent
-					// failure.
-
-					// Use global pool for first time connections
+					// failure.pr first time connections
 					handoffClientToApInternal(PoolManager.GLOBAL_POOL, clientHwAddress, odinAgentAddr);
 				}
 
@@ -301,8 +300,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinAp
 			tup.cb.exec(tup.oes, cntx);
 		}
 	}
-
-
+	
 	/**
 	 * VAP-Handoff a client to a new AP. This operation is idempotent.
 	 *
@@ -412,7 +410,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinAp
 		}
 	}
 
-	//********* Odin methods to be used by applications (from IOdinApplicationInterface) **********//
+	//********* Odin methods to be used by applications (from IOdinMasterToApplicationInterface) **********//
 
 	/**
 	 * VAP-Handoff a client to a new AP. This operation is idempotent.
@@ -624,6 +622,48 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinAp
 		return false;
 	}
 
+	/**
+	 * Change the Wi-Fi channel of an specific agent (AP)
+	 * 
+	 * @param Pool
+	 * @param Agent InetAddress
+	 * @param Channel
+	 */
+	@Override
+	public void setChannelToAgent (String pool, InetAddress agentAddr, int channel) {
+		agentManager.getAgent(agentAddr).setChannel(channel);
+	}
+	
+	/**
+	 * Get channel from and specific agent (AP)
+	 * 
+	 * @param Pool
+	 * @param Agent InetAddress
+	 * @return Channel number
+	 */
+	@Override
+	public int getChannelFromAgent (String pool, InetAddress agentAddr) {
+		return agentManager.getAgent(agentAddr).getChannel();
+	}
+	
+	/**
+	 * Channel Switch Announcement, to the clients of an specific agent (AP)
+	 * 
+	 * @param Pool
+	 * @param Agent InetAddress
+	 * @param Client MAC
+	 * @param SSID
+	 * @param Channel 
+	 */
+	@Override
+	public void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, String ssid, int channel) {
+		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster ");
+		MACAddress bssid = poolManager.generateBssidForClient(clientHwAddr);
+		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster " + bssid);
+		Set<String> ssidList = poolManager.getSsidListForPool(pool);//.contains(ssid);
+		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster " + ssidList);
+		agentManager.getAgent(agentAddr).sendChannelSwitch(clientHwAddr, bssid, ssidList, channel);
+	}
 
 	//********* from IFloodlightModule **********//
 

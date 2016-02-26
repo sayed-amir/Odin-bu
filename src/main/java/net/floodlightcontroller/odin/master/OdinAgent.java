@@ -29,6 +29,13 @@ import net.floodlightcontroller.util.MACAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * OdinAgent class. Wi5 NOTE: we introduce a new variable 
+ * channel to map the physical Wi-Fi channel used by the access point.
+ * 
+ * @author Lalith Suresh <suresh.lalith@gmail.com>
+ */
 @JsonSerialize(using=OdinAgentSerializer.class)
 class OdinAgent implements IOdinAgent {
 
@@ -41,19 +48,23 @@ class OdinAgent implements IOdinAgent {
 	private IOFSwitch ofSwitch;
 	private InetAddress ipAddress;
 	private long lastHeard;
+	private int channel;
 
 	private ConcurrentSkipListSet<OdinClient> clientList = new ConcurrentSkipListSet<OdinClient>();
 
-	// OdinAgent Handler strings
+	// OdinAgent Handler strings. Wi5: We introduce handlers to manage APs channels
 	private static final String READ_HANDLER_TABLE = "table";
 	private static final String READ_HANDLER_RXSTATS = "rxstats";
 	private static final String READ_HANDLER_SPECTRAL_SCAN = "spectral_scan";
+	private static final String READ_HANDLER_CHANNEL = "channel";
 	private static final String WRITE_HANDLER_ADD_VAP = "add_vap";
 	private static final String WRITE_HANDLER_SET_VAP = "set_vap";
 	private static final String WRITE_HANDLER_REMOVE_VAP = "remove_vap";
 	private static final String WRITE_HANDLER_SUBSCRIPTIONS = "subscriptions";
 	private static final String WRITE_HANDLER_SEND_PROBE_RESPONSE = "send_probe_response";
 	private static final String WRITE_HANDLER_SPECTRAL_SCAN = "spectral_scan";
+	private static final String WRITE_HANDLER_CHANNEL = "channel";
+	private static final String WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT = "channel_switch_announcement";
 	private static final String ODIN_AGENT_ELEMENT = "odinagent";
 
 	private final int RX_STAT_NUM_PROPERTIES = 5;
@@ -207,28 +218,6 @@ class OdinAgent implements IOdinAgent {
 	 */
 	public int init(InetAddress host) {
 
-		OFFlowMod flow3 = new OFFlowMod();
-		{
-			OFMatch match = new OFMatch();
-			match.fromString("dl_type=0x0800,nw_proto=17,tp_dst=68");
-
-			OFActionOutput actionOutput = new OFActionOutput ();
-			actionOutput.setPort(OFPort.OFPP_CONTROLLER.getValue());
-			actionOutput.setLength((short) OFActionOutput.MINIMUM_LENGTH);
-			actionOutput.setMaxLength((short)500);
-			List<OFAction> actionList = new ArrayList<OFAction>();
-			actionList.add(actionOutput);
-
-
-			flow3.setCookie(67);
-			flow3.setPriority((short) 300);
-			flow3.setMatch(match);
-			flow3.setIdleTimeout((short) 0);
-			flow3.setActions(actionList);
-			flow3.setLength(U16.t(OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH));
-		}
-
-
 		OFFlowMod flow1 = new OFFlowMod();
 		{
 			OFMatch match = new OFMatch();
@@ -273,12 +262,56 @@ class OdinAgent implements IOdinAgent {
 			flow2.setLength(U16.t(OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH));
 		}
 
+		OFFlowMod flow3 = new OFFlowMod();
+		{
+			OFMatch match = new OFMatch();
+			match.fromString("dl_type=0x0800,nw_proto=17,tp_dst=68");
 
-		/*try {
+			OFActionOutput actionOutput = new OFActionOutput ();
+			actionOutput.setPort(OFPort.OFPP_CONTROLLER.getValue());
+			actionOutput.setLength((short) OFActionOutput.MINIMUM_LENGTH);
+			actionOutput.setMaxLength((short)500);
+			List<OFAction> actionList = new ArrayList<OFAction>();
+			actionList.add(actionOutput);
+
+
+			flow3.setCookie(67);
+			flow3.setPriority((short) 300);
+			flow3.setMatch(match);
+			flow3.setIdleTimeout((short) 0);
+			flow3.setActions(actionList);
+			flow3.setLength(U16.t(OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH));
+		}
+
+		//TODO: flow rule for local port (TNO-Unizar)
+		/*OFFlowMod flow4 = new OFFlowMod();
+		{
+			OFMatch match = new OFMatch();
+			//match.fromString("in_port=2,dl_type=0x0800");
+			//match.fromString("in_port=2, dl_type=0x0800,nw_proto=17,tp_dst=67"); //port 68 used by DHCP client, 67 by server
+			//TODO: also add match on source address 
+			match.fromString("in_port=1,dl_type=0x0800,nw_dst=" + this.ipAddress + ",nw_proto=6,tp_dst=6777");
+
+			OFActionOutput actionOutput = new OFActionOutput ();
+			actionOutput.setPort(OFPort.OFPP_LOCAL.getValue());
+			actionOutput.setLength((short) OFActionOutput.MINIMUM_LENGTH);
+
+			List<OFAction> actionList = new ArrayList<OFAction>();
+			actionList.add(actionOutput);
+
+			flow4.setCookie(67);
+			flow4.setPriority((short) 200);
+			flow4.setMatch(match);
+			flow4.setIdleTimeout((short) 0);
+			flow4.setActions(actionList);
+			flow4.setLength(U16.t(OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH));
+		}
+
+		try {
 			//ofSwitch.write(flow1, null);
 			//ofSwitch.write(flow2, null);
 			//ofSwitch.write(flow3, null);
-
+			ofSwitch.write(flow4, null);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -451,5 +484,40 @@ class OdinAgent implements IOdinAgent {
 		}
 
 		invokeWriteHandler(WRITE_HANDLER_SEND_PROBE_RESPONSE, sb.toString());
+	}
+	
+	@Override
+	public void setChannel(int channel) {
+		//Wi5- TODO: We should announce to the APs the change of the channel. This need futher discusssion
+		if(channel != this.channel) 
+			this.channel = channel;
+		String chan = Integer.toString(channel);
+		invokeWriteHandler(WRITE_HANDLER_CHANNEL, chan);
+	}
+	
+	@Override
+	public int getChannel() {
+		String handler = "";
+		handler = invokeReadHandler(READ_HANDLER_CHANNEL);
+		int channel = Integer.parseInt(handler);
+		if(channel != this.channel)
+			this.channel = channel;
+		return this.channel;
+	}
+	
+	@Override
+	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, Set<String> ssidList, int channel) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(clientHwAddr);
+		sb.append(" ");
+		sb.append(bssid);
+		sb.append(" ");
+		sb.append(channel);
+		for (String ssid: ssidList) {
+			sb.append(" ");
+			sb.append(ssid);
+		}
+		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinAgent " + WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT);
+		invokeWriteHandler(WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT, sb.toString());
 	}
 }
