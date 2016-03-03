@@ -9,3 +9,4 @@
 thrift
 logback.xml
 target/bin/
+/bin/
