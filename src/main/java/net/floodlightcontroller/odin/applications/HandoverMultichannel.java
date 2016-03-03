@@ -31,7 +31,7 @@ import net.floodlightcontroller.util.MACAddress;
  */
 
 public class HandoverMultichannel extends OdinApplication {
-	protected static Logger log=LoggerFactory.getLogger(HandoverMultichannel.class);
+	protected static java.util.logging.Logger log=LoggerFactory.getLogger(HandoverMultichannel.class);
 	// a table including each client and its mobility statistics
 	private ConcurrentMap<MACAddress, MobilityStats> clientMap = new ConcurrentHashMap<MACAddress, MobilityStats> ();
 	private final long HYSTERESIS_THRESHOLD; // milliseconds
@@ -113,12 +113,14 @@ public class HandoverMultichannel extends OdinApplication {
 				try {
 					this.agentAddr5 = InetAddress.getByName(ap5);
 					this.agentAddr6 = InetAddress.getByName(ap6);
+					log.info("HandoverMultichannel: Setting " + this.agentAddr5 + this.agentAddr6); // for testing
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
 				}
 				
 				for (InetAddress agentAddr: getAgents()) { 
 					/* for each of the agents defined in the Poolfile (APs) */
+					log.info("HandoverMultichannel: Looking for all Ap's ....");
 					if (agentAddr.getHostAddress().equals(agentAddr5)){
 						this.channel = getChannelFromAgent(cntx.agent.getIpAddress());
 						log.info ("HandoverMultichannel: Agent: " + agentAddr + " in channel " + this.channel);
