@@ -31,7 +31,7 @@ import net.floodlightcontroller.util.MACAddress;
  */
 
 public class HandoverMultichannel extends OdinApplication {
-	protected static java.util.logging.Logger log=LoggerFactory.getLogger(HandoverMultichannel.class);
+	protected static Logger log = LoggerFactory.getLogger(HandoverMultichannel.class);
 	// a table including each client and its mobility statistics
 	private ConcurrentMap<MACAddress, MobilityStats> clientMap = new ConcurrentHashMap<MACAddress, MobilityStats> ();
 	private final long HYSTERESIS_THRESHOLD; // milliseconds
@@ -42,9 +42,8 @@ public class HandoverMultichannel extends OdinApplication {
 	private final int CHANNEL_AP5 = 4;
 	private final int CHANNEL_AP6 = 9;
 	private int channel;
-	String ssid = "odin-wi5-demo";
-	String ap5 = "192.168.1.5";
-	String ap6 = "192.168.1.6";
+	
+	
 	private InetAddress agentAddr5;
 	private InetAddress agentAddr6;	
 	HashSet<OdinClient> clients;
@@ -106,21 +105,24 @@ public class HandoverMultichannel extends OdinApplication {
                     
 		}
 		**/
-		
-		while (true) {
-			try {
-				log.info ("HandoverMultichannel: Entering to ping-pong ....");
-				try {
+		String ap5 = "192.168.1.5";
+		String ap6 = "192.168.1.6";
+		try {
 					this.agentAddr5 = InetAddress.getByName(ap5);
 					this.agentAddr6 = InetAddress.getByName(ap6);
-					log.info("HandoverMultichannel: Setting " + this.agentAddr5 + this.agentAddr6); // for testing
+					log.info ("HandoverMultichannel: Setting " + this.agentAddr5 + this.agentAddr6); // for testing
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
 				}
+		String ssid = "odin-wi5-demo";
+		while (true) {
+			try {
+				log.info ("HandoverMultichannel: Entering to ping-pong ....");
+				
 				
 				for (InetAddress agentAddr: getAgents()) { 
 					/* for each of the agents defined in the Poolfile (APs) */
-					log.info("HandoverMultichannel: Looking for all Ap's ....");
+					log.info ("HandoverMultichannel: Looking for all Ap's ....");
 					if (agentAddr.getHostAddress().equals(agentAddr5)){
 						this.channel = getChannelFromAgent(cntx.agent.getIpAddress());
 						log.info ("HandoverMultichannel: Agent: " + agentAddr + " in channel " + this.channel);
