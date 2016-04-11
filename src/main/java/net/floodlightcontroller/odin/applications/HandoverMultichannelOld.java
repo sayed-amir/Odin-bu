@@ -30,8 +30,8 @@ import net.floodlightcontroller.util.MACAddress;
  *
  */
 
-public class HandoverMultichannel extends OdinApplication {
-	protected static Logger log = LoggerFactory.getLogger(HandoverMultichannel.class);
+public class HandoverMultichannelOld extends OdinApplication {
+	protected static Logger log = LoggerFactory.getLogger(HandoverMultichannelOld.class);
 	// a table including each client and its mobility statistics
 	private ConcurrentMap<MACAddress, MobilityStats> clientMap = new ConcurrentHashMap<MACAddress, MobilityStats> ();
 	private final long HYSTERESIS_THRESHOLD; // milliseconds
@@ -46,7 +46,7 @@ public class HandoverMultichannel extends OdinApplication {
 	private InetAddress agentAddr6;	
 	HashSet<OdinClient> clients;
 
-	public HandoverMultichannel () {
+	public HandoverMultichannelOld () {
 		this.HYSTERESIS_THRESHOLD = 3000;
 		this.IDLE_CLIENT_THRESHOLD = 4000;
 		this.SIGNAL_STRENGTH_THRESHOLD = 40;
@@ -78,8 +78,7 @@ public class HandoverMultichannel extends OdinApplication {
 	private void init () {
 		
 		OdinEventSubscription oes = new OdinEventSubscription();
-		//oes.setSubscription("40:A5:EF:05:93:DC", "signal", Relation.GREATER_THAN, 0);
-		oes.setSubscription("00:16:EA:ED:F3:06", "signal", Relation.GREATER_THAN, 0);
+		oes.setSubscription("40:A5:EF:05:93:DC", "signal", Relation.GREATER_THAN, 0);
 		NotificationCallback cb = new NotificationCallback() {
 			@Override
 			public void exec(OdinEventSubscription oes, NotificationCallbackContext cntx) {
@@ -110,7 +109,7 @@ public class HandoverMultichannel extends OdinApplication {
 		for (InetAddress agentAddr: getAgents()) {
 			log.info("HandoverMultichannel: Agents " + agentAddr.getHostAddress());
 		}
-		//while (true) {
+		while (true) {
 			log.info ("HandoverMultichannel: Entering to ping-pong ....");		
 			//for (InetAddress agentAddr: getAgents()) { 
 				/* for each of the agents defined in the Poolfile (APs) */
@@ -125,9 +124,8 @@ public class HandoverMultichannel extends OdinApplication {
 					//log.info ("HandoverMultichannel: Agent: " + agentAddr.getHostAddress() + " in channel " + Integer.toString(channel));					
 					sendChannelSwitchToClient(cntx.agent.getIpAddress(), cntx.clientHwAddress, ssid, CHANNEL_AP6);
 					handoffClientToAp(cntx.clientHwAddress, agentAddr6);
-					//giveTime();
-					//channel = getChannelFromAgent(cntx.agent.getIpAddress());
-					//log.info ("HandoverMultichannel: Channel: " + Integer.toString(channel));
+					channel = getChannelFromAgent(cntx.agent.getIpAddress());
+					log.info ("HandoverMultichannel: Channel: " + Integer.toString(channel));
 				} else {
 					//log.info ("HandoverMultichannel: Looking for all Ap's .... else");
 					if (cntx.agent.getIpAddress().equals(agentAddr6)){
@@ -138,22 +136,17 @@ public class HandoverMultichannel extends OdinApplication {
 						//log.info ("HandoverMultichannel: Agent: " + agentAddr.getHostAddress() + " in channel " + Integer.toString(channel));
 						sendChannelSwitchToClient(cntx.agent.getIpAddress(), cntx.clientHwAddress, ssid, CHANNEL_AP5);
 						handoffClientToAp(cntx.clientHwAddress, agentAddr5);
-						//giveTime();
-						//channel = getChannelFromAgent(cntx.agent.getIpAddress());
-						//log.info ("HandoverMultichannel: Channel: " + Integer.toString(channel));
+						channel = getChannelFromAgent(cntx.agent.getIpAddress());
+						log.info ("HandoverMultichannel: Channel: " + Integer.toString(channel));
 					}
 				}
-				giveTime();
-			//}
-		//}	
-	}
-	
-	private void giveTime () {
-		try {
+				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+			//}
+		}	
 	}
 
 	private void asigmentChannel () {

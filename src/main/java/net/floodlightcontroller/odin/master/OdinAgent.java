@@ -22,6 +22,7 @@ import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.util.U16;
 
 import java.util.Collections;
+import java.lang.*;
 
 import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.util.MACAddress;
@@ -497,11 +498,18 @@ class OdinAgent implements IOdinAgent {
 	
 	@Override
 	public int getChannel() {
-		String handler = "";
-		handler = invokeReadHandler(READ_HANDLER_CHANNEL);
-		int channel = Integer.parseInt(handler);
-		if(channel != this.channel)
-			this.channel = channel;
+		log.info("Getting channel OdinAgent");
+		int chan = 0;
+		String handler = invokeReadHandler(READ_HANDLER_CHANNEL);
+		log.info("handler " + handler);
+		try {
+			chan = Integer.parseInt(handler.trim());
+		} catch (NumberFormatException nfe){
+			  nfe.printStackTrace();
+		}
+		log.info("channel ");
+		if(chan != this.channel)
+			this.channel = chan;
 		return this.channel;
 	}
 	
@@ -517,7 +525,7 @@ class OdinAgent implements IOdinAgent {
 			sb.append(" ");
 			sb.append(ssid);
 		}
-		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinAgent " + WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT);
+		log.info ("TestingCSA::::::::::::::::::::::::::::OdinAgent " + WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT);
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT, sb.toString());
 	}
 }
