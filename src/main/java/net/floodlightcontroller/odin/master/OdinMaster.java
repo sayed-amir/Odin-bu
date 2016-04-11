@@ -923,18 +923,19 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		agentManager.removeAgent(switchIpAddr);
 	}
 
-
+/*
 	@Override
 	public Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 		return Command.CONTINUE;
 	}
-
-	/*
+*/
+	
 	@Override
 	public Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 
 	// We use this to pick up DHCP response frames
 	// and update a client's IP address details accordingly
+	// we use the update_client_lvap function to send the IP address once the DHCP server has assigned it to the STA
 	Ethernet frame = IFloodlightProviderService.bcStore.get(cntx,
         IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
 
@@ -952,7 +953,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
         	DHCP packet = (DHCP) p3;
         	try {
 
-			//log.info("DHCP packet received...");
+			log.info("DHCP packet received...");
         		final MACAddress clientHwAddr = MACAddress.valueOf(packet.getClientHardwareAddress());
         		final OdinClient oc = clientManager.getClients().get(clientHwAddr);
 
@@ -963,7 +964,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
         			return Command.CONTINUE;
         		}
 
-			//log.info("*** DHCP packet *for our client* received... ***");
+			log.info("*** DHCP packet *for our client* received... ***");
 
         		// Look for the Your-IP field in the DHCP packet
         		if (packet.getYourIPAddress() != 0) {
@@ -980,14 +981,14 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 
         			log.info("Updating client: " + clientHwAddr + " with ipAddr: " + yourIp);
         			oc.setIpAddress(yourIp);
-        			oc.getLvap().setOFMessageList(lvapManager.getDefaultOFModList(yourIp));
+        		/*	oc.getLvap().setOFMessageList(lvapManager.getDefaultOFModList(yourIp));
 
         			// Push flow messages associated with the client
         			try {
         				oc.getLvap().getAgent().getSwitch().write(oc.getLvap().getOFMessageList(), null);
         			} catch (IOException e) {
         				log.error("Failed to update switch's flow tables " + oc.getLvap().getAgent().getSwitch());
-        			}
+        			}*/
         			oc.getLvap().getAgent().updateClientLvap(oc);
         		}
 
@@ -999,7 +1000,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 
 		return Command.CONTINUE;
 	}
-	*/
+	
 
 	@Override
 	public boolean isCallbackOrderingPostreq(OFType type, String name) {
