@@ -498,23 +498,16 @@ class OdinAgent implements IOdinAgent {
 	
 	@Override
 	public int getChannel() {
-		log.info("Getting channel OdinAgent");
 		int chan = 0;
 		String handler = invokeReadHandler(READ_HANDLER_CHANNEL);
-		log.info("handler " + handler);
-		try {
-			chan = Integer.parseInt(handler.trim());
-		} catch (NumberFormatException nfe){
-			  nfe.printStackTrace();
-		}
-		log.info("channel ");
+		chan = Integer.parseInt(handler.trim());
 		if(chan != this.channel)
 			this.channel = chan;
 		return this.channel;
 	}
 	
 	@Override
-	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, Set<String> ssidList, int channel) {
+	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, List<String> ssidList, int channel) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(clientHwAddr);
 		sb.append(" ");
@@ -525,7 +518,6 @@ class OdinAgent implements IOdinAgent {
 			sb.append(" ");
 			sb.append(ssid);
 		}
-		log.info ("TestingCSA::::::::::::::::::::::::::::OdinAgent " + WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT);
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT, sb.toString());
 	}
 }

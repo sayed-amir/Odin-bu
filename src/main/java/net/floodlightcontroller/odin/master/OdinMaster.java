@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.sound.midi.MidiDevice.Info;
 
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFType;
@@ -96,7 +99,10 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	 * @param InetAddress of the agent
 	 */
 	synchronized void receivePing (final InetAddress odinAgentAddr) {
+		
+		log.info("We receive a Ping from: " + odinAgentAddr.getHostAddress());
 		if (agentManager.receivePing(odinAgentAddr)) {
+			log.info(odinAgentAddr.getHostAddress() + "is a new agent");
 			// if the above leads to a new agent being
 			// tracked, push the current subscription list
 			// to it.
@@ -379,7 +385,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 			 */
 
 			String clientPool = poolManager.getPoolForClient(client);
-
+			
 			if (clientPool == null || !clientPool.equals(pool)) {
 				log.error ("Cannot handoff client '" + client.getMacAddress() + "' from " + clientPool + " domain when in domain: '" + pool + "'");
 			}
@@ -390,6 +396,14 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 				return;
 			}
 
+			//Wi5 Add: Are the APs in the same channel? If not, start CSA procedure.
+			if ((agentManager.getAgent(currentApIpAddress)).getChannel() != (agentManager.getAgent(newApIpAddr)).getChannel()) {
+				//Send CSA messages and wait.
+				sendChannelSwitchToClient(clientPool,currentApIpAddress, clientHwAddr, client.getLvap().getSsids(),(agentManager.getAgent(newApIpAddr)).getChannel());
+				//void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, List<String> lvapSsids, int channel);
+
+			}
+			
 			// Push flow messages associated with the client
 			try {
 				newAgent.getSwitch().write(lvap.getOFMessageList(), null);
@@ -648,7 +662,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	}
 	
 	/**
-	 * Channel Switch Announcement, to the clients of an specific agent (AP)
+	 * Channel Switch Announcement, to the clients of an specific agent (AP) -> Must it be private? 
 	 * 
 	 * @param Pool
 	 * @param Agent InetAddress
@@ -656,14 +670,16 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	 * @param SSID
 	 * @param Channel 
 	 */
-	@Override
-	public void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, String ssid, int channel) {
+	//@Override
+	//public void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, List<String> lvapSsids, int channel) {
+	private void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, List<String> lvapSsids, int channel) {		
 		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster ");
 		MACAddress bssid = poolManager.generateBssidForClient(clientHwAddr);
 		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster " + bssid);
-		Set<String> ssidList = poolManager.getSsidListForPool(pool);//.contains(ssid);
+	//	Set<String> ssidList = poolManager.getSsidListForPool(pool);//.contains(ssid);
 		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster " + ssidList);
-		agentManager.getAgent(agentAddr).sendChannelSwitch(clientHwAddr, bssid, ssidList, channel);
+		//agentManager.getAgent(agentAddr).sendChannelSwitch(clientHwAddr, bssid, new HashSet<String>(lvapSsids), channel);
+		agentManager.getAgent(agentAddr).sendChannelSwitch(clientHwAddr, bssid, lvapSsids, channel);
 	}
 
 	//********* from IFloodlightModule **********//

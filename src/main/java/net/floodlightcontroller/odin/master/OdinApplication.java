@@ -176,9 +176,8 @@ public abstract class OdinApplication implements Runnable {
 	 * @param SSID
 	 * @param Channel
 	 */
-	protected final void sendChannelSwitchToClient (InetAddress agentAddr, MACAddress clientHwAddr, String ssid, int channel){
+	/*protected final void sendChannelSwitchToClient (InetAddress agentAddr, MACAddress clientHwAddr, String ssid, int channel){
 		odinApplicationInterfaceToMaster.sendChannelSwitchToClient(pool, agentAddr, clientHwAddr, ssid, channel);
-	}
-
+	}*/
 
 }

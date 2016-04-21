@@ -2,6 +2,7 @@ package net.floodlightcontroller.odin.master;
 
 
 import java.net.InetAddress;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -160,7 +161,7 @@ public interface IOdinAgent {
 	 * @author Luis Sequeira <sequeira@unizar.es>
 	 * 
 	 */
-	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, Set<String> ssidList, int channel);
+	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, List<String> ssidList, int channel);
 	
 	
 }

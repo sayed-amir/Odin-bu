@@ -122,7 +122,7 @@ public class HandoverMultichannelOld extends OdinApplication {
 					channel = getChannelFromAgent(cntx.agent.getIpAddress());
 					log.info ("HandoverMultichannel: Channel: " + Integer.toString(channel));
 					//log.info ("HandoverMultichannel: Agent: " + agentAddr.getHostAddress() + " in channel " + Integer.toString(channel));					
-					sendChannelSwitchToClient(cntx.agent.getIpAddress(), cntx.clientHwAddress, ssid, CHANNEL_AP6);
+					//sendChannelSwitchToClient(cntx.agent.getIpAddress(), cntx.clientHwAddress, ssid, CHANNEL_AP6);
 					handoffClientToAp(cntx.clientHwAddress, agentAddr6);
 					channel = getChannelFromAgent(cntx.agent.getIpAddress());
 					log.info ("HandoverMultichannel: Channel: " + Integer.toString(channel));
@@ -134,7 +134,7 @@ public class HandoverMultichannelOld extends OdinApplication {
 						channel = getChannelFromAgent(cntx.agent.getIpAddress());
 						log.info ("HandoverMultichannel: Channel: " + Integer.toString(channel));
 						//log.info ("HandoverMultichannel: Agent: " + agentAddr.getHostAddress() + " in channel " + Integer.toString(channel));
-						sendChannelSwitchToClient(cntx.agent.getIpAddress(), cntx.clientHwAddress, ssid, CHANNEL_AP5);
+						//sendChannelSwitchToClient(cntx.agent.getIpAddress(), cntx.clientHwAddress, ssid, CHANNEL_AP5);
 						handoffClientToAp(cntx.clientHwAddress, agentAddr5);
 						channel = getChannelFromAgent(cntx.agent.getIpAddress());
 						log.info ("HandoverMultichannel: Channel: " + Integer.toString(channel));

@@ -2,6 +2,7 @@ package net.floodlightcontroller.odin.master;
 
 import java.net.InetAddress;
 import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -105,7 +106,7 @@ class StubOdinAgent implements IOdinAgent {
 	}
 	
 	@Override
-	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, Set<String> ssidList, int channel){
+	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, List<String> ssidList, int channel){
 		// Do nothing.
 	}
 }

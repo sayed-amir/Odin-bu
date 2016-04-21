@@ -1,6 +1,7 @@
 package net.floodlightcontroller.odin.master;
 
 import java.net.InetAddress;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -114,7 +115,7 @@ interface IOdinMasterToApplicationInterface {
 	 * @param Channel
 	 * @author Luis Sequeira <sequeira@unizar.es>
 	 */
-	void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, String ssid, int channel);
+	//void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, List<String> lvapSsids, int channel);
 
 
 }
