@@ -100,9 +100,9 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	 */
 	synchronized void receivePing (final InetAddress odinAgentAddr) {
 		
-		log.info("We receive a Ping from: " + odinAgentAddr.getHostAddress());
+		//log.info("We receive a Ping from: " + odinAgentAddr.getHostAddress());
 		if (agentManager.receivePing(odinAgentAddr)) {
-			log.info(odinAgentAddr.getHostAddress() + "is a new agent");
+			log.info(odinAgentAddr.getHostAddress() + " is a new agent");
 			// if the above leads to a new agent being
 			// tracked, push the current subscription list
 			// to it.
@@ -319,7 +319,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		// prime both nodes, and complete a handoff.
 
 		if (pool == null || clientHwAddr == null || newApIpAddr == null) {
-			log.error("null argument in handoffClientToAp(): pool:" + pool + "clientHwAddr: " + clientHwAddr + " newApIpAddr: " + newApIpAddr);
+			log.error("null argument in handoffClientToAp(): pool: " + pool + "clientHwAddr: " + clientHwAddr + " newApIpAddr: " + newApIpAddr);
 			return;
 		}
 

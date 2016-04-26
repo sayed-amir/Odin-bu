@@ -17,7 +17,7 @@ public class SimpleLoadBalancer extends OdinApplication {
 	private final int INTERVAL = 60000;
 	
 	/* define the signal threshold to consider moving a client to an AP */
-	private final int SIGNAL_THRESHOLD = 160;
+	private final int SIGNAL_THRESHOLD = 0;
 
 	HashSet<OdinClient> clients;
 
