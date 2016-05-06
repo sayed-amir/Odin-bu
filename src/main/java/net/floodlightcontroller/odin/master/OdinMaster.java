@@ -396,12 +396,12 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 				return;
 			}
 
-			//Wi5 Add: Are the APs in the same channel? If not, start CSA procedure.
+			// Wi5 Add: Are the APs in the same channel? If not, start CSA procedure.
 			if ((agentManager.getAgent(currentApIpAddress)).getChannel() != (agentManager.getAgent(newApIpAddr)).getChannel()) {
 				//Send CSA messages and wait.
 				sendChannelSwitchToClient(clientPool,currentApIpAddress, clientHwAddr, client.getLvap().getSsids(),(agentManager.getAgent(newApIpAddr)).getChannel());
 				//void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, List<String> lvapSsids, int channel);
-
+				
 			}
 			
 			// Push flow messages associated with the client

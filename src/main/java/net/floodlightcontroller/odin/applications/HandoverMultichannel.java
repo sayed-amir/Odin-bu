@@ -40,7 +40,8 @@ public class HandoverMultichannel extends OdinApplication {
 		OdinEventSubscription oes = new OdinEventSubscription();
 		/* FIXME: Add something in order to subscribe more than one STA */
 		//oes.setSubscription("40:A5:EF:E5:93:DF", "signal", Relation.GREATER_THAN, 0); // One client
-        oes.setSubscription("*", "signal", Relation.GREATER_THAN, 0); // All clients
+        //oes.setSubscription("*", "signal", Relation.GREATER_THAN, 0); // All clients
+        oes.setSubscription("24:FD:52:E7:60:6E", "signal", Relation.GREATER_THAN, 0); // white laptop
 
 		NotificationCallback cb = new NotificationCallback() {
 			@Override
