@@ -492,6 +492,8 @@ class OdinAgent implements IOdinAgent {
 		//Wi5- TODO: We should announce to the APs the change of the channel. This need futher discusssion
 		if(channel != this.channel) 
 			this.channel = channel;
+		// Next line can be commented when using iw/iwconfig to change the channel in the AP. Do not comment when using hostapd_cli
+		channel = this.convertChannelToFrequency(channel);
 		String chan = Integer.toString(channel);
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL, chan);
 	}
@@ -519,5 +521,25 @@ class OdinAgent implements IOdinAgent {
 			sb.append(ssid);
 		}
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT, sb.toString());
+	}
+	
+	public int convertFrequencyToChannel(int freq) {
+	    if (freq >= 2412 && freq <= 2484) {
+	        return (freq - 2412) / 5 + 1;
+	    } else if (freq >= 5170 && freq <= 5825) {
+	        return (freq - 5170) / 5 + 34;
+	    } else {
+	        return -1;
+	    }
+	}
+	
+	public int convertChannelToFrequency(int chan) {
+	    if (chan >= 1 && chan <= 14) {
+	        return 5 * (chan - 1) + 2412;
+	    } else if (chan >= 34 && chan <= 165) {
+	        return 5 * (chan - 34) + 5170;
+	    } else {
+	        return -1;
+	    }
 	}
 }

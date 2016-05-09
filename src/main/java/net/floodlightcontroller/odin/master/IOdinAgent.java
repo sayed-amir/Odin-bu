@@ -164,4 +164,23 @@ public interface IOdinAgent {
 	public void sendChannelSwitch(MACAddress clientHwAddr, MACAddress bssid, List<String> ssidList, int channel);
 	
 	
+	/**
+	 * Convert Frequency to Channel in 2.4 GHz and 5 GHz
+	 * 
+	 * @param Frequency
+	 * @author Luis Sequeira <sequeira@unizar.es>
+	 * 
+	 */
+	public int convertFrequencyToChannel(int freq);
+	
+	
+	/**
+	 * Convert Channel to Frequency in 2.4 GHz and 5 GHz
+	 * 
+	 * @param Channel
+	 * @author Luis Sequeira <sequeira@unizar.es>
+	 * 
+	 */
+	public int convertChannelToFrequency(int chan)
+	
 }
