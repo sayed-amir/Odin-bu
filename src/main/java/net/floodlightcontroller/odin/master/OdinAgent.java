@@ -525,9 +525,11 @@ class OdinAgent implements IOdinAgent {
 	
 	public int convertFrequencyToChannel(int freq) {
 	    if (freq >= 2412 && freq <= 2484) {
-	        return (freq - 2412) / 5 + 1;
+	        int chan = (freq - 2412) / 5 + 1;
+	        return chan;
 	    } else if (freq >= 5170 && freq <= 5825) {
-	        return (freq - 5170) / 5 + 34;
+	        int chan = (freq - 5170) / 5 + 34;
+	        return chan;
 	    } else {
 	        return -1;
 	    }
@@ -535,9 +537,11 @@ class OdinAgent implements IOdinAgent {
 	
 	public int convertChannelToFrequency(int chan) {
 	    if (chan >= 1 && chan <= 14) {
-	        return 5 * (chan - 1) + 2412;
+	        int freq = 5 * (chan - 1) + 2412;
+	        return freq;
 	    } else if (chan >= 34 && chan <= 165) {
-	        return 5 * (chan - 34) + 5170;
+	        int freq = 5 * (chan - 34) + 5170;
+	        return freq;
 	    } else {
 	        return -1;
 	    }
