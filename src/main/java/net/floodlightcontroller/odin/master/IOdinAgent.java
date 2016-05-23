@@ -181,6 +181,6 @@ public interface IOdinAgent {
 	 * @author Luis Sequeira <sequeira@unizar.es>
 	 * 
 	 */
-	public int convertChannelToFrequency(int chan)
+	public int convertChannelToFrequency(int chan);
 	
 }
