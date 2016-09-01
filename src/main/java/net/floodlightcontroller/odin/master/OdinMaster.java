@@ -462,7 +462,35 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		return (client != null && poolManager.getPoolForClient(client).equals(pool)) ? client : null;
 	}
 
+	
+	/**
+	 * Retreive LastHeard from the agent
+	 * 
+	 * @param pool that the invoking application corresponds to
+	 * @param agentAddr InetAddress of the agent
+	 * 
+	 * @return timestamp of the last ping heard from the agent
+	 */
+	@Override
+	public long getLastHeardFromAgent (String pool, InetAddress agentAddr) {
+		return agentManager.getAgent(agentAddr).getLastHeard();
+	}
 
+	
+	/**
+	 * Retreive TxStats from the agent
+	 *
+	 * @param pool that the invoking application corresponds to
+	 * @param agentAddr InetAddress of the agent
+	 *
+	 * @return Key-Value entries of each recorded statistic for each client
+	 */
+	@Override
+	public Map<MACAddress, Map<String, String>> getTxStatsFromAgent (String pool, InetAddress agentAddr) {
+		return agentManager.getAgent(agentAddr).getTxStats();
+	}
+
+	
 	/**
 	 * Retreive RxStats from the agent
 	 *

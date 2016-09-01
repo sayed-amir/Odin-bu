@@ -17,6 +17,7 @@ import net.floodlightcontroller.util.MACAddress;
  * channel to map the physical Wi-Fi channel used by the access point.
  * 
  * @author Lalith Suresh <suresh.lalith@gmail.com>
+ * 
  */
 class StubOdinAgent implements IOdinAgent {
 
@@ -37,7 +38,12 @@ class StubOdinAgent implements IOdinAgent {
 	public InetAddress getIpAddress() {
 		return ipAddr;
 	}
-
+	
+	@Override
+	public Map<MACAddress, Map<String, String>> getTxStats() {
+		return null;
+	}
+	
 	@Override
 	public Map<MACAddress, Map<String, String>> getRxStats() {
 		return null;

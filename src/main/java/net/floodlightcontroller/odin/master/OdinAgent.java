@@ -55,6 +55,7 @@ class OdinAgent implements IOdinAgent {
 
 	// OdinAgent Handler strings. Wi5: We introduce handlers to manage APs channels
 	private static final String READ_HANDLER_TABLE = "table";
+	private static final String READ_HANDLER_TXSTATS = "txstats";
 	private static final String READ_HANDLER_RXSTATS = "rxstats";
 	private static final String READ_HANDLER_SPECTRAL_SCAN = "spectral_scan";
 	private static final String READ_HANDLER_CHANNEL = "channel";
@@ -68,7 +69,8 @@ class OdinAgent implements IOdinAgent {
 	private static final String WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT = "channel_switch_announcement";
 	private static final String ODIN_AGENT_ELEMENT = "odinagent";
 
-	private final int RX_STAT_NUM_PROPERTIES = 5;
+	private final int TX_STAT_NUM_PROPERTIES = 7;
+	private final int RX_STAT_NUM_PROPERTIES = 7;
 	private final int ODIN_AGENT_PORT = 6777;
 
 
@@ -168,6 +170,42 @@ class OdinAgent implements IOdinAgent {
 		return clientList;
 	}
 
+	/**
+	 * Retrieve Tx-stats from the OdinAgent.
+	 *
+	 * @return A map of stations' MAC addresses to a map of properties and
+	 *         values.
+	 */
+	public Map<MACAddress, Map<String, String>> getTxStats() {
+		String stats = invokeReadHandler(READ_HANDLER_TXSTATS);
+
+		Map<MACAddress, Map<String, String>> ret = new HashMap<MACAddress, Map<String, String>>();
+
+		/*
+		 * We basically get rows like this MAC_ADDR1 prop1:<value> prop2:<value>
+		 * MAC_ADDR2 prop1:<value> prop2:<value>
+		 */
+		String arr[] = stats.split("\n");
+		for (String elem : arr) {
+			String row[] = elem.split(" ");
+
+			if (row.length != TX_STAT_NUM_PROPERTIES + 1) {
+				continue;
+			}
+
+			MACAddress eth = MACAddress.valueOf(row[0].toLowerCase());
+
+			Map<String, String> innerMap = new HashMap<String, String>();
+
+			for (int i = 1; i < TX_STAT_NUM_PROPERTIES + 1; i += 1) {
+				innerMap.put(row[i].split(":")[0], row[i].split(":")[1]);
+			}
+
+			ret.put(eth, Collections.unmodifiableMap(innerMap));
+		}
+
+		return Collections.unmodifiableMap(ret);
+	}
 
 	/**
 	 * Retrive Rx-stats from the OdinAgent.

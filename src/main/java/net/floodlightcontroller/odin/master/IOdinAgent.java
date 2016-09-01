@@ -39,6 +39,14 @@ public interface IOdinAgent {
 	 */
 	public Set<OdinClient> getLvapsLocal ();
 	
+	/**
+	 * Retrieve Tx-stats from the OdinAgent.
+	 * 
+	 *  @return A map of stations' MAC addresses to a map
+	 *  of properties and values.
+	 */
+	public Map<MACAddress, Map<String, String>> getTxStats ();
+
 	
 	/**
 	 * Retrive Rx-stats from the OdinAgent.
