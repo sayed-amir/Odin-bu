@@ -699,14 +699,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	 * @param Channel 
 	 */
 	//@Override
-	//public void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, List<String> lvapSsids, int channel) {
 	private void sendChannelSwitchToClient (String pool, InetAddress agentAddr, MACAddress clientHwAddr, List<String> lvapSsids, int channel) {		
-		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster ");
 		MACAddress bssid = poolManager.generateBssidForClient(clientHwAddr);
-		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster " + bssid);
-	//	Set<String> ssidList = poolManager.getSsidListForPool(pool);//.contains(ssid);
-		//log.info ("TestingCSA::::::::::::::::::::::::::::OdinMaster " + ssidList);
-		//agentManager.getAgent(agentAddr).sendChannelSwitch(clientHwAddr, bssid, new HashSet<String>(lvapSsids), channel);
 		agentManager.getAgent(agentAddr).sendChannelSwitch(clientHwAddr, bssid, lvapSsids, channel);
 	}
 
@@ -1008,7 +1002,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
         			return Command.CONTINUE;
         		}
 
-			log.info("*** DHCP packet *for our client* received... ***");
+			log.info("*** DHCP packet *for our client* received... *** ");
 
         		// Look for the Your-IP field in the DHCP packet
         		if (packet.getYourIPAddress() != 0) {
