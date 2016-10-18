@@ -28,6 +28,7 @@ class StubOdinAgent implements IOdinAgent {
 	private ConcurrentSkipListSet<OdinClient> clientList = new ConcurrentSkipListSet<OdinClient>();
 	private int freq;
 	private int chan;
+	private int lastScan;
 	
 	@Override
 	public void addClientLvap(OdinClient oc) {
@@ -126,5 +127,10 @@ class StubOdinAgent implements IOdinAgent {
 	@Override
 	public int convertChannelToFrequency(int chan) {
 		return freq;
+	}
+	
+	@Override
+	public int scanClient(MACAddress clientHwAddr, int channel, int time){
+		return lastScan;
 	}
 }

@@ -703,6 +703,21 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		MACAddress bssid = poolManager.generateBssidForClient(clientHwAddr);
 		agentManager.getAgent(agentAddr).sendChannelSwitch(clientHwAddr, bssid, lvapSsids, channel);
 	}
+	
+	/**
+	 * Scanning for a client in a specific agent (AP)
+	 * 
+	 * @param Pool
+	 * @param Agent InetAddress
+	 * @param Client MAC
+	 * @param Channel
+	 * @param Scanning time
+	 * @return Signal power
+	 */
+	@Override
+	public int scanClientFromAgent (String pool, InetAddress agentAddr, MACAddress clientHwAddr, int channel, int time){
+		return agentManager.getAgent(agentAddr).scanClient(clientHwAddr, channel, time);
+	}
 
 	//********* from IFloodlightModule **********//
 
