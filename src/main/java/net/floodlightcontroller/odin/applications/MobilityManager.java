@@ -19,7 +19,7 @@ import net.floodlightcontroller.odin.master.OdinEventSubscription.Relation;
 import net.floodlightcontroller.util.MACAddress;
 
 public class MobilityManager extends OdinApplication {
-	protected static Logger log = LoggerFactory.getLogger(MobilityManager.class);
+	protected static java.util.logging.Logger log = LoggerFactory.getLogger(MobilityManager.class);
 	/* A table including each client and its mobility statistics */
 	private ConcurrentMap<MACAddress, MobilityStats> clientMap = new ConcurrentHashMap<MACAddress, MobilityStats> ();
 	private final long HYSTERESIS_THRESHOLD; // milliseconds
@@ -33,7 +33,7 @@ public class MobilityManager extends OdinApplication {
 		this.IDLE_CLIENT_THRESHOLD = 180000; // Must to be bigger than HYSTERESIS_THRESHOLD
 		this.SIGNAL_STRENGTH_THRESHOLD = 0;
 		this.SIGNAL_THRESHOLD = 50;
-		this.SCANNING_TIME = 100; // Time for scanning in another agent
+		this.SCANNING_TIME = 1000; // Time for scanning in another agent
 	}
 
 	/**
@@ -42,8 +42,8 @@ public class MobilityManager extends OdinApplication {
 	private void init () {
 		OdinEventSubscription oes = new OdinEventSubscription();
 		/* FIXME: Add something in order to subscribe more than one STA */
-		//oes.setSubscription("40:A5:EF:E5:93:DF", "signal", Relation.GREATER_THAN, 0); // One client
-        oes.setSubscription("*", "signal", Relation.LESSER_THAN, this.SIGNAL_THRESHOLD); // All clients
+		oes.setSubscription("*", "signal", Relation.GREATER_THAN, 0); // For testing with all clients
+        //oes.setSubscription("*", "signal", Relation.LESSER_THAN, this.SIGNAL_THRESHOLD); // All clients
 
 		NotificationCallback cb = new NotificationCallback() {
 			@Override
@@ -60,6 +60,7 @@ public class MobilityManager extends OdinApplication {
 		/* When the application runs, you need some time to start the agents */
 		this.giveTime(30000);
 		this.channelAssignment();
+		this.giveTime(30000);
 		init (); 
 	}
 	
@@ -90,6 +91,7 @@ public class MobilityManager extends OdinApplication {
 		/* Scan and update statistics */
 		for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
 			if (!cntx.agent.getIpAddress().equals(agentAddr)) {
+				log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr " and channel " + getChannelFromAgent(agentAddr));
 				lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(agentAddr), this.SCANNING_TIME);
 				if (lastScanningResult >= stats.scanningResult) {
 					updateStatsWithReassignment(stats, cntx.value, currentTimestamp, agentAddr, lastScanningResult);
@@ -102,7 +104,7 @@ public class MobilityManager extends OdinApplication {
 		// The client is associated to Odin (it has an LVAP), but it does not have an associated agent
 		// If client hasn't been assigned an agent, associate it to the current AP
 		if (client.getLvap().getAgent() == null) {
-			log.info("HandoverMultichannel: client hasn't been asigned an agent: handing off client " + cntx.clientHwAddress
+			log.info("MobilityManager: client hasn't been asigned an agent: handing off client " + cntx.clientHwAddress
 					+ " to agent " + stats.agentAddr + " at " + System.currentTimeMillis());
 			handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
 			updateStatsWithReassignment (stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
@@ -112,7 +114,7 @@ public class MobilityManager extends OdinApplication {
 		// Check for out-of-range client
 		// a client has sent nothing during a certain time
 		if ((currentTimestamp - stats.lastHeard) > IDLE_CLIENT_THRESHOLD) {
-			log.info("HandoverMultichannel: client with MAC address " + cntx.clientHwAddress
+			log.info("MobilityManager: client with MAC address " + cntx.clientHwAddress
 					+ " was idle longer than " + IDLE_CLIENT_THRESHOLD/1000 + " sec -> Reassociating it to agent " + stats.agentAddr);
 			handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
 			updateStatsWithReassignment (stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
@@ -132,7 +134,7 @@ public class MobilityManager extends OdinApplication {
 			// I check if the strength is higher (THRESHOLD) than the last measurement stored the
 			// last time in the other AP
 			if (cntx.value >= stats.signalStrength + SIGNAL_STRENGTH_THRESHOLD) {
-				log.info("HandoverMultichannel: signal strengths: " + cntx.value + ">= " + stats.signalStrength + " + " + SIGNAL_STRENGTH_THRESHOLD + " :" + "handing off client " + cntx.clientHwAddress
+				log.info("MobilityManager: signal strengths: " + cntx.value + ">= " + stats.signalStrength + " + " + SIGNAL_STRENGTH_THRESHOLD + " :" + "handing off client " + cntx.clientHwAddress
 						+ " to agent " + stats.agentAddr);
 				handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
 				updateStatsWithReassignment (stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
@@ -181,16 +183,16 @@ public class MobilityManager extends OdinApplication {
 	/* FIXME: Do it in a suitable way */
 	private void channelAssignment () {
 		for (InetAddress agentAddr: getAgents()) {
-			log.info("HandoverMultichannel: Agent IP: " + agentAddr.getHostAddress());
+			log.info("MobilityManager: Agent IP: " + agentAddr.getHostAddress());
 			if (agentAddr.getHostAddress().equals("192.168.1.9")){
-				log.info ("HandoverMultichannel: Agent channel: " + getChannelFromAgent(agentAddr));
+				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
 				setChannelToAgent(agentAddr, 4);
-				log.info ("HandoverMultichannel: Agent channel: " + getChannelFromAgent(agentAddr));
+				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
 			}
 			if (agentAddr.getHostAddress().equals("192.168.1.10")){
-				log.info ("HandoverMultichannel: Agent channel: " + getChannelFromAgent(agentAddr));
+				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
 				setChannelToAgent(agentAddr, 10);
-				log.info ("HandoverMultichannel: Agent channel: " + getChannelFromAgent(agentAddr));
+				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
 			}
 		}
 	}
