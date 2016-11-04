@@ -1,8 +1,8 @@
 # Pool-1
 NAME pool-1
-NODES 192.168.1.5 192.168.1.6
-NETWORKS odin-wi5-labtel
-APPLICATIONS net.floodlightcontroller.odin.applications.HandoverMultichannel
+NODES 192.168.1.9 192.168.1.10
+NETWORKS wi5-demo
+APPLICATIONS net.floodlightcontroller.odin.applications.MobilityManager net.floodlightcontroller.odin.applications.ShowStatistics
 
 # Pool-2
 #NAME pool-2
