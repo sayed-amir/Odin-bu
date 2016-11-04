@@ -19,7 +19,7 @@ import net.floodlightcontroller.odin.master.OdinEventSubscription.Relation;
 import net.floodlightcontroller.util.MACAddress;
 
 public class MobilityManager extends OdinApplication {
-	protected static java.util.logging.Logger log = LoggerFactory.getLogger(MobilityManager.class);
+	protected static Logger log = LoggerFactory.getLogger(MobilityManager.class);
 	/* A table including each client and its mobility statistics */
 	private ConcurrentMap<MACAddress, MobilityStats> clientMap = new ConcurrentHashMap<MACAddress, MobilityStats> ();
 	private final long HYSTERESIS_THRESHOLD; // milliseconds
@@ -91,7 +91,7 @@ public class MobilityManager extends OdinApplication {
 		/* Scan and update statistics */
 		for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
 			if (!cntx.agent.getIpAddress().equals(agentAddr)) {
-				log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr " and channel " + getChannelFromAgent(agentAddr));
+				log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
 				lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(agentAddr), this.SCANNING_TIME);
 				if (lastScanningResult >= stats.scanningResult) {
 					updateStatsWithReassignment(stats, cntx.value, currentTimestamp, agentAddr, lastScanningResult);

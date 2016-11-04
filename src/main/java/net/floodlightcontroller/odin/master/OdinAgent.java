@@ -543,7 +543,7 @@ class OdinAgent implements IOdinAgent {
 	public int getChannel() {
 		int chan = 0;
 		String handler = invokeReadHandler(READ_HANDLER_CHANNEL);
-		chan = Integer.parseInt(handler.trim());
+		chan = convertFrequencyToChannel(Integer.parseInt(handler.trim()));
 		if(chan != this.channel)
 			this.channel = chan;
 		return this.channel;
