@@ -90,7 +90,10 @@ public class MobilityManager extends OdinApplication {
 				
 		/* Scan and update statistics */
 		for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
-			if (!cntx.agent.getIpAddress().equals(agentAddr)) {
+			if (cntx.agent.getIpAddress().equals(agentAddr)) {
+				continue; // Skip same AP
+			}
+			else {
 				log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
 				lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(agentAddr), this.SCANNING_TIME);
 				if (lastScanningResult >= stats.scanningResult) {
