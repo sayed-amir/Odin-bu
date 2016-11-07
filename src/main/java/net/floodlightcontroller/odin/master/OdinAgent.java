@@ -533,8 +533,6 @@ class OdinAgent implements IOdinAgent {
 		//Wi5- TODO: We should announce to the APs the change of the channel. This need futher discusssion
 		if(channel != this.channel) 
 			this.channel = channel;
-		// Next line can be commented when using iw/iwconfig to change the channel in the AP. Do not comment when using hostapd_cli
-		channel = this.convertChannelToFrequency(channel);
 		String chan = Integer.toString(channel);
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL, chan);
 	}
@@ -543,7 +541,7 @@ class OdinAgent implements IOdinAgent {
 	public int getChannel() {
 		int chan = 0;
 		String handler = invokeReadHandler(READ_HANDLER_CHANNEL);
-		chan = convertFrequencyToChannel(Integer.parseInt(handler.trim()));
+		chan = Integer.parseInt(handler.trim());
 		if(chan != this.channel)
 			this.channel = chan;
 		return this.channel;
@@ -563,7 +561,7 @@ class OdinAgent implements IOdinAgent {
 		}
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT, sb.toString());
 	}
-	
+	/* 
 	public int convertFrequencyToChannel(int freq) {
 	    if (freq >= 2412 && freq <= 2484) {
 	        int chan = (freq - 2412) / 5 + 1;
@@ -587,13 +585,14 @@ class OdinAgent implements IOdinAgent {
 	        return -1;
 	    }
 	}
+*/
 
 	@Override
 	public int scanClient(MACAddress clientHwAddr, int channel, int time) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(clientHwAddr);
 		sb.append(" ");
-		sb.append(convertChannelToFrequency(channel));
+		sb.append(channel);
 		invokeWriteHandler(WRITE_HANDLER_SCAN_CLIENT, sb.toString());
 		try {
 			Thread.sleep(time);
