@@ -59,8 +59,8 @@ public class MobilityManager extends OdinApplication {
 	public void run() {
 		/* When the application runs, you need some time to start the agents */
 		this.giveTime(30000);
-		this.channelAssignment();
-		this.giveTime(30000);
+		//this.channelAssignment();
+		//this.giveTime(30000);
 		init (); 
 	}
 	
