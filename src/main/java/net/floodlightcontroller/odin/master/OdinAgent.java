@@ -593,7 +593,7 @@ class OdinAgent implements IOdinAgent {
 		StringBuilder sb = new StringBuilder();
 		sb.append(clientHwAddr);
 		sb.append(" ");
-		sb.append(channel);
+		sb.append(convertChannelToFrequency(channel));
 		invokeWriteHandler(WRITE_HANDLER_SCAN_CLIENT, sb.toString());
 		try {
 			Thread.sleep(time);
