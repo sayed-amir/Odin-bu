@@ -561,7 +561,7 @@ class OdinAgent implements IOdinAgent {
 		}
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT, sb.toString());
 	}
-	/* 
+	 
 	public int convertFrequencyToChannel(int freq) {
 	    if (freq >= 2412 && freq <= 2484) {
 	        int chan = (freq - 2412) / 5 + 1;
@@ -585,7 +585,7 @@ class OdinAgent implements IOdinAgent {
 	        return -1;
 	    }
 	}
-*/
+
 
 	@Override
 	public int scanClient(MACAddress clientHwAddr, int channel, int time) {
