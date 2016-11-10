@@ -27,13 +27,15 @@ public class MobilityManager extends OdinApplication {
 	private final long SIGNAL_STRENGTH_THRESHOLD; // dbm
 	private final long SIGNAL_THRESHOLD;
 	private final int SCANNING_TIME; // milliseconds
+	private final boolean scan;
 
 	public MobilityManager () {
 		this.HYSTERESIS_THRESHOLD = 15000;
 		this.IDLE_CLIENT_THRESHOLD = 180000; // Must to be bigger than HYSTERESIS_THRESHOLD
 		this.SIGNAL_STRENGTH_THRESHOLD = 0;
 		this.SIGNAL_THRESHOLD = 50;
-		this.SCANNING_TIME = 1000; // Time for scanning in another agent
+		this.SCANNING_TIME = 2000; // Time for scanning in another agent
+		this.scan = true;
 	}
 
 	/**
@@ -50,7 +52,8 @@ public class MobilityManager extends OdinApplication {
 		NotificationCallback cb = new NotificationCallback() {
 			@Override
 			public void exec(OdinEventSubscription oes, NotificationCallbackContext cntx) {
-				handler(oes, cntx);
+				if (scan == true)
+					handler(oes, cntx);
 			}
 		};
 		/* Before executing this line, make sure the agents declared in poolfile are started */	
@@ -100,9 +103,11 @@ public class MobilityManager extends OdinApplication {
 				else {
 					log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
 					lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(cntx.agent.getIpAddress()), this.SCANNING_TIME);
+					scan = false;
 					if (lastScanningResult >= stats.scanningResult) {
 						updateStatsWithReassignment(stats, cntx.value, currentTimestamp, agentAddr, lastScanningResult);
 					}
+					log.info("MobilityManager: Scaned client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr) + " with power " + lastScanningResult);
 				}
 			}
 		}
