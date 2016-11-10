@@ -65,7 +65,7 @@ public class MobilityManager extends OdinApplication {
 		/* When the application runs, you need some time to start the agents */
 		this.giveTime(30000);
 		this.channelAssignment();
-		this.giveTime(30000);
+		this.giveTime(10000);
 		init (); 
 	}
 	
@@ -79,7 +79,6 @@ public class MobilityManager extends OdinApplication {
 	private void handler (OdinEventSubscription oes, NotificationCallbackContext cntx) {
 		OdinClient client = getClientFromHwAddress(cntx.clientHwAddress);
 		long lastScanningResult;
-		this.giveTime(10000);
 		/* The client is not registered in Odin, exit */
 		if (client == null)
 			return;
