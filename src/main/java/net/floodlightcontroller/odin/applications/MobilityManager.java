@@ -106,7 +106,7 @@ public class MobilityManager extends OdinApplication {
 					if (lastScanningResult >= stats.scanningResult) {
 						updateStatsWithReassignment(stats, cntx.value, currentTimestamp, agentAddr, lastScanningResult);
 					}
-					log.info("MobilityManager: Scaned client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr) + " with power " + lastScanningResult);
+					log.info("MobilityManager: Scaned client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()) + " with power " + lastScanningResult);
 				}
 			}
 		}
