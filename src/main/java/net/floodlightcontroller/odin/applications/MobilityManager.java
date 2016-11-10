@@ -88,18 +88,20 @@ public class MobilityManager extends OdinApplication {
 		}
 		// get the statistics of that client
 		MobilityStats stats = clientMap.get(cntx.clientHwAddress);
-				
+		
 		/* Scan and update statistics */
-		for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
-			if (cntx.agent.getIpAddress().equals(agentAddr)) {
-				log.info("MobilityManager: Do not Scan client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
-				continue; // Skip same AP
-			}
-			else {
-				log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
-				lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(cntx.agent.getIpAddress()), this.SCANNING_TIME);
-				if (lastScanningResult >= stats.scanningResult) {
-					updateStatsWithReassignment(stats, cntx.value, currentTimestamp, agentAddr, lastScanningResult);
+		if ((currentTimestamp - stats.assignmentTimestamp > HYSTERESIS_THRESHOLD) || (client.getLvap().getAgent() != null)) {
+			for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
+				if (cntx.agent.getIpAddress().equals(agentAddr)) {
+					//log.info("MobilityManager: Do not Scan client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
+					continue; // Skip same AP
+				}
+				else {
+					log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
+					lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(cntx.agent.getIpAddress()), this.SCANNING_TIME);
+					if (lastScanningResult >= stats.scanningResult) {
+						updateStatsWithReassignment(stats, cntx.value, currentTimestamp, agentAddr, lastScanningResult);
+					}
 				}
 			}
 		}
