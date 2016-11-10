@@ -27,7 +27,7 @@ public class MobilityManager extends OdinApplication {
 	private final long SIGNAL_STRENGTH_THRESHOLD; // dbm
 	private final long SIGNAL_THRESHOLD;
 	private final int SCANNING_TIME; // milliseconds
-	private final boolean scan;
+	private boolean scan;
 
 	public MobilityManager () {
 		this.HYSTERESIS_THRESHOLD = 15000;
