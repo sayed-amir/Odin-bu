@@ -79,7 +79,7 @@ public class MobilityManager extends OdinApplication {
 	private void handler (OdinEventSubscription oes, NotificationCallbackContext cntx) {
 		OdinClient client = getClientFromHwAddress(cntx.clientHwAddress);
 		long lastScanningResult;
-		
+		this.giveTime(10000);
 		/* The client is not registered in Odin, exit */
 		if (client == null)
 			return;
