@@ -43,7 +43,8 @@ public class MobilityManager extends OdinApplication {
 		OdinEventSubscription oes = new OdinEventSubscription();
 		/* FIXME: Add something in order to subscribe more than one STA */
 		//oes.setSubscription("*", "signal", Relation.GREATER_THAN, 0); // For testing with all clients
-		oes.setSubscription("00:22:6B:9C:8C:7A", "signal", Relation.GREATER_THAN, 0); // For testing with all clients
+		//oes.setSubscription("00:22:6B:9C:8C:7A", "signal", Relation.GREATER_THAN, 0); // For testing with Linksys
+		oes.setSubscription("D4:7B:B0:7A:2E:59", "signal", Relation.GREATER_THAN, 0); // For testing with Raspberry Pi
         //oes.setSubscription("*", "signal", Relation.LESSER_THAN, this.SIGNAL_THRESHOLD); // All clients
 
 		NotificationCallback cb = new NotificationCallback() {
