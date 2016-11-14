@@ -52,7 +52,7 @@ public class MobilityManager extends OdinApplication {
 		NotificationCallback cb = new NotificationCallback() {
 			@Override
 			public void exec(OdinEventSubscription oes, NotificationCallbackContext cntx) {
-				if (scan == true)
+				if (scan == true) // For testing only once
 					handler(oes, cntx);
 			}
 		};
@@ -91,8 +91,9 @@ public class MobilityManager extends OdinApplication {
 		}
 		// get the statistics of that client
 		MobilityStats stats = clientMap.get(cntx.clientHwAddress);
-		
+				
 		/* Scan and update statistics */
+		/**
 		if ((currentTimestamp - stats.assignmentTimestamp > HYSTERESIS_THRESHOLD) || (client.getLvap().getAgent() != null)) {
 			for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
 				if (cntx.agent.getIpAddress().equals(agentAddr)) {
@@ -110,7 +111,8 @@ public class MobilityManager extends OdinApplication {
 				}
 			}
 		}
-		
+		**/
+				
 		/* Now, handoff */
 		
 		// The client is associated to Odin (it has an LVAP), but it does not have an associated agent
@@ -143,13 +145,30 @@ public class MobilityManager extends OdinApplication {
 			if (currentTimestamp - stats.assignmentTimestamp < HYSTERESIS_THRESHOLD)
 				return;
 			// We're outside the hysteresis period, so compare signal strengths for a handoff
-			// I check if the strength is higher (THRESHOLD) than the last measurement stored the
+			// I check if the strength is lower (THRESHOLD) than the last measurement stored the
 			// last time in the other AP
-			if (cntx.value >= stats.signalStrength + SIGNAL_STRENGTH_THRESHOLD) {
+			if (true) { // For testing
+			//if (stats.signalStrength + SIGNAL_STRENGTH_THRESHOLD > cntx.value) {
+				/* Scan and update statistics */
+				for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
+					if (cntx.agent.getIpAddress().equals(agentAddr)) {
+						log.info("MobilityManager: Do not Scan client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
+						continue; // Skip same AP
+					}
+					else {
+						log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
+						lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(cntx.agent.getIpAddress()), this.SCANNING_TIME);
+						scan = false; // For testing only once
+						if (lastScanningResult >= stats.scanningResult) {
+							updateStatsWithReassignment(stats, cntx.value, currentTimestamp, agentAddr, lastScanningResult);
+						}
+						log.info("MobilityManager: Scaned client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()) + " with power " + lastScanningResult);
+					}
+				}
 				log.info("MobilityManager: signal strengths: " + cntx.value + ">= " + stats.signalStrength + " + " + SIGNAL_STRENGTH_THRESHOLD + " :" + "handing off client " + cntx.clientHwAddress
 						+ " to agent " + stats.agentAddr);
 				handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
-				updateStatsWithReassignment (stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
+				//updateStatsWithReassignment (stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
 				return;
 			}
 		}
@@ -191,7 +210,8 @@ public class MobilityManager extends OdinApplication {
 					e.printStackTrace();
 				}
 	}
-
+	
+	
 	/* FIXME: Do it in a suitable way */
 	private void channelAssignment () {
 		for (InetAddress agentAddr: getAgents()) {
