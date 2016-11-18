@@ -35,7 +35,7 @@ public class MobilityManager extends OdinApplication {
 		this.HYSTERESIS_THRESHOLD = 15000;
 		this.IDLE_CLIENT_THRESHOLD = 180000;
 		this.SIGNAL_STRENGTH_THRESHOLD = 0;
-		this.SIGNAL_THRESHOLD = 205;
+		this.SIGNAL_THRESHOLD = 215;
 		this.SCANNING_TIME = 1000; 
 		this.STA = "D4:7B:B0:7A:2E:59";
 		this.VALUE = "signal";
@@ -115,11 +115,7 @@ public class MobilityManager extends OdinApplication {
 		}
 		
 		// If this notification is from the agent that's hosting the client's LVAP update MobilityStats and handoff.
-		// Else, update MobilityStats.
 		if (client.getLvap().getAgent().getIpAddress().equals(cntx.agent.getIpAddress())) {
-			stats.signalStrength = cntx.value;
-			stats.lastHeard = currentTimestamp;			
-			
 			// Don't bother if we're not within hysteresis period
 			if (currentTimestamp - stats.assignmentTimestamp < HYSTERESIS_THRESHOLD)
 				return;
@@ -127,7 +123,7 @@ public class MobilityManager extends OdinApplication {
 			// I check if the strength is lower (THRESHOLD) than the last measurement stored the
 			// last time in the other AP
 			//if (true) { // For testing
-			if (stats.signalStrength + SIGNAL_STRENGTH_THRESHOLD > cntx.value) {
+			//if (stats.signalStrength + SIGNAL_STRENGTH_THRESHOLD >= cntx.value) {
 				/* Scan and update statistics */
 				for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
 					if (cntx.agent.getIpAddress().equals(agentAddr)) {
@@ -149,11 +145,12 @@ public class MobilityManager extends OdinApplication {
 				handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
 				//updateStatsWithReassignment (stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
 				return;
-			}
+			//}
 		}
 		else {
 			stats.signalStrength = cntx.value;
 			stats.lastHeard = currentTimestamp;
+			return;
 		}
 		
 	}
