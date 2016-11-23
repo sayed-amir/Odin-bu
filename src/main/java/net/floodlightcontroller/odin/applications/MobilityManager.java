@@ -64,8 +64,9 @@ public class MobilityManager extends OdinApplication {
 	public void run() {
 		/* When the application runs, you need some time to start the agents */
 		this.giveTime(30000);
-		this.channelAssignment();
-		this.giveTime(10000);
+		//this.channelAssignment();
+		//this.giveTime(10000);
+		//setAgentTimeout(10000);
 		init (); 
 	}
 	
@@ -191,6 +192,7 @@ public class MobilityManager extends OdinApplication {
 				setChannelToAgent(agentAddr, 10);
 				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
 			}
+			
 		}
 	}
 
