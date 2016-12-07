@@ -601,7 +601,7 @@ class OdinAgent implements IOdinAgent {
         		e.printStackTrace();
 		}
 		log.info("Sending READ_HANDLER_SCAN_CLIENT");
-		String handler = "200";// invokeReadHandler(READ_HANDLER_SCAN_CLIENT);
+		String handler = invokeReadHandler(READ_HANDLER_SCAN_CLIENT);
 		lastScan = Integer.parseInt(handler.trim());
 		log.info("READ_HANDLER_SCAN_CLIENT " + lastScan);
 		return lastScan;
