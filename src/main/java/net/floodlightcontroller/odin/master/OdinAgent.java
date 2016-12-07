@@ -594,7 +594,7 @@ class OdinAgent implements IOdinAgent {
 		sb.append(" ");
 		sb.append(channel);
 		log.info("Sending WRITE_HANDLER_SCAN_CLIENT " + sb.toString());
-		//invokeWriteHandler(WRITE_HANDLER_SCAN_CLIENT, sb.toString());
+		invokeWriteHandler(WRITE_HANDLER_SCAN_CLIENT, sb.toString());
 		try {
 			Thread.sleep(time);
 		} catch (InterruptedException e){
