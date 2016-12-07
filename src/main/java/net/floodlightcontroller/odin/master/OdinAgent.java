@@ -508,8 +508,8 @@ class OdinAgent implements IOdinAgent {
 			String handlerText) {
 		outBuf.println("WRITE " + ODIN_AGENT_ELEMENT + "." + handlerName + " "
 				+ handlerText);
-		//log.info("WRITE " + ODIN_AGENT_ELEMENT + "." + handlerName + " "
-		//		+ handlerText);
+		log.info("WRITE " + ODIN_AGENT_ELEMENT + "." + handlerName + " "
+				+ handlerText);
 	}
 
 
