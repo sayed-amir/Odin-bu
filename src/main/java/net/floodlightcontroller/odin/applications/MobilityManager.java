@@ -37,7 +37,7 @@ public class MobilityManager extends OdinApplication {
 		this.SIGNAL_STRENGTH_THRESHOLD = 0;
 		this.SIGNAL_THRESHOLD = 215;
 		this.SCANNING_TIME = 1000; 
-		this.STA = "D4:7B:B0:7A:2E:59";
+		this.STA = "B8:27:EB:F2:E5:D6";
 		this.VALUE = "signal";
 		this.scan = true;
 	}
