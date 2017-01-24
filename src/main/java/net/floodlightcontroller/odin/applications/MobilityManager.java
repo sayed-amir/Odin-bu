@@ -130,8 +130,12 @@ public class MobilityManager extends OdinApplication {
 					log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()));
 					lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(cntx.agent.getIpAddress()), this.SCANNING_TIME);
 					//scan = false; // For testing only once
-					if (lastScanningResult >= stats.scanningResult) {
-						updateStatsWithReassignment(stats, cntx.value, currentTimestamp, agentAddr, lastScanningResult);
+					if (lastScanningResult >= stats.signalStrength) {
+					//if (lastScanningResult >= 50) { // testing
+						updateStatsWithReassignment(stats, lastScanningResult, currentTimestamp, agentAddr, lastScanningResult);
+					}
+					else {
+						updateStatsWithReassignment(stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
 					}
 					log.info("MobilityManager: Scaned client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()) + " with power " + lastScanningResult);
 				}
@@ -184,12 +188,12 @@ public class MobilityManager extends OdinApplication {
 			log.info("MobilityManager: Agent IP: " + agentAddr.getHostAddress());
 			if (agentAddr.getHostAddress().equals("192.168.1.9")){
 				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
-				setChannelToAgent(agentAddr, 4);
+				setChannelToAgent(agentAddr, 1);
 				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
 			}
 			if (agentAddr.getHostAddress().equals("192.168.1.10")){
 				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
-				setChannelToAgent(agentAddr, 10);
+				setChannelToAgent(agentAddr, 11);
 				log.info ("MobilityManager: Agent channel: " + getChannelFromAgent(agentAddr));
 			}
 			
