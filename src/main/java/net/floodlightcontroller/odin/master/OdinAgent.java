@@ -50,6 +50,7 @@ class OdinAgent implements IOdinAgent {
 	private InetAddress ipAddress;
 	private long lastHeard;
 	private int channel;
+	private int lastScan;
 
 	private ConcurrentSkipListSet<OdinClient> clientList = new ConcurrentSkipListSet<OdinClient>();
 
@@ -59,6 +60,7 @@ class OdinAgent implements IOdinAgent {
 	private static final String READ_HANDLER_RXSTATS = "rxstats";
 	private static final String READ_HANDLER_SPECTRAL_SCAN = "spectral_scan";
 	private static final String READ_HANDLER_CHANNEL = "channel";
+	private static final String READ_HANDLER_SCAN_CLIENT = "scan_client";
 	private static final String WRITE_HANDLER_ADD_VAP = "add_vap";
 	private static final String WRITE_HANDLER_SET_VAP = "set_vap";
 	private static final String WRITE_HANDLER_REMOVE_VAP = "remove_vap";
@@ -67,6 +69,7 @@ class OdinAgent implements IOdinAgent {
 	private static final String WRITE_HANDLER_SPECTRAL_SCAN = "spectral_scan";
 	private static final String WRITE_HANDLER_CHANNEL = "channel";
 	private static final String WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT = "channel_switch_announcement";
+	private static final String WRITE_HANDLER_SCAN_CLIENT = "scan_client";
 	private static final String ODIN_AGENT_ELEMENT = "odinagent";
 
 	private final int TX_STAT_NUM_PROPERTIES = 7;
@@ -530,8 +533,6 @@ class OdinAgent implements IOdinAgent {
 		//Wi5- TODO: We should announce to the APs the change of the channel. This need futher discusssion
 		if(channel != this.channel) 
 			this.channel = channel;
-		// Next line can be commented when using iw/iwconfig to change the channel in the AP. Do not comment when using hostapd_cli
-		channel = this.convertChannelToFrequency(channel);
 		String chan = Integer.toString(channel);
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL, chan);
 	}
@@ -560,7 +561,7 @@ class OdinAgent implements IOdinAgent {
 		}
 		invokeWriteHandler(WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT, sb.toString());
 	}
-	
+	 
 	public int convertFrequencyToChannel(int freq) {
 	    if (freq >= 2412 && freq <= 2484) {
 	        int chan = (freq - 2412) / 5 + 1;
@@ -584,4 +585,26 @@ class OdinAgent implements IOdinAgent {
 	        return -1;
 	    }
 	}
+
+
+	@Override
+	public int scanClient(MACAddress clientHwAddr, int channel, int time) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(clientHwAddr);
+		sb.append(" ");
+		sb.append(channel);
+		log.info("Sending WRITE_HANDLER_SCAN_CLIENT " + sb.toString());
+		invokeWriteHandler(WRITE_HANDLER_SCAN_CLIENT, sb.toString());
+		try {
+			Thread.sleep(time);
+		} catch (InterruptedException e){
+        		e.printStackTrace();
+		}
+		log.info("Sending READ_HANDLER_SCAN_CLIENT");
+		String handler = invokeReadHandler(READ_HANDLER_SCAN_CLIENT);
+		lastScan = Integer.parseInt(handler.trim());
+		log.info("READ_HANDLER_SCAN_CLIENT " + lastScan);
+		return lastScan;
+	} 
+	
 }

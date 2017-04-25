@@ -28,7 +28,7 @@ public class HandoverMultichannel extends OdinApplication {
 	private final int INTERVAL = 60000; // time before running the application. This leaves you some time for starting the agents
 
 	public HandoverMultichannel () {
-		this.HYSTERESIS_THRESHOLD = 30000;
+		this.HYSTERESIS_THRESHOLD = 15000;
 		this.IDLE_CLIENT_THRESHOLD = 180000; // Must to be bigger than HYSTERESIS_THRESHOLD
 		this.SIGNAL_STRENGTH_THRESHOLD = 0;
 	}
@@ -40,8 +40,8 @@ public class HandoverMultichannel extends OdinApplication {
 		OdinEventSubscription oes = new OdinEventSubscription();
 		/* FIXME: Add something in order to subscribe more than one STA */
 		//oes.setSubscription("40:A5:EF:E5:93:DF", "signal", Relation.GREATER_THAN, 0); // One client
-        //oes.setSubscription("*", "signal", Relation.GREATER_THAN, 0); // All clients
-        oes.setSubscription("24:FD:52:E7:60:6E", "signal", Relation.GREATER_THAN, 0); // white laptop
+        oes.setSubscription("*", "signal", Relation.GREATER_THAN, 0); // All clients
+        //oes.setSubscription("24:FD:52:E7:60:6E", "signal", Relation.GREATER_THAN, 0); // white laptop
 
 		NotificationCallback cb = new NotificationCallback() {
 			@Override
@@ -61,7 +61,7 @@ public class HandoverMultichannel extends OdinApplication {
 		} catch (InterruptedException e){
         		e.printStackTrace();
 		}
-		//asigmentChannel();
+		//assigmentChannel();
 		init (); 
 	}
 
@@ -182,7 +182,7 @@ public class HandoverMultichannel extends OdinApplication {
 				}
 	}
 
-	private void asigmentChannel () {
+	private void assigmentChannel () {
 		for (InetAddress agentAddr: getAgents()) {
 			log.info("HandoverMultichannel: Agent IP: " + agentAddr.getHostAddress());
 			if (agentAddr.getHostAddress().equals("192.168.1.7")){

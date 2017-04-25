@@ -191,4 +191,16 @@ public interface IOdinAgent {
 	 */
 	public int convertChannelToFrequency(int chan);
 	
+
+	/**
+	 * Scanning for a client in a specific agent (AP)
+	 * 
+	 * @param Client MAC
+	 * @param Channel
+	 * @param Scanning time
+	 * @return Signal power
+	 * 
+	 */
+	public int scanClient (MACAddress clientHwAddr, int channel, int time);
+	
 }

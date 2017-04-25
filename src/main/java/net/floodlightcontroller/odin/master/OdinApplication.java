@@ -199,5 +199,18 @@ public abstract class OdinApplication implements Runnable {
 	/*protected final void sendChannelSwitchToClient (InetAddress agentAddr, MACAddress clientHwAddr, String ssid, int channel){
 		odinApplicationInterfaceToMaster.sendChannelSwitchToClient(pool, agentAddr, clientHwAddr, ssid, channel);
 	}*/
+	
+	/**
+	 * Scanning for a client in a specific agent (AP)
+	 * 
+	 * @param Agent InetAddress
+	 * @param Client MAC
+	 * @param Channel
+	 * @param Scanning time
+	 * @return Signal power
+	 */
+	protected final int scanClientFromAgent (InetAddress agentAddr, MACAddress clientHwAddr, int channel, int time){
+		return odinApplicationInterfaceToMaster.scanClientFromAgent(pool, agentAddr, clientHwAddr, channel, time);
+	}
 
 }
