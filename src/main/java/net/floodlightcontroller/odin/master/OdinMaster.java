@@ -67,9 +67,13 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 
 	private long subscriptionId = 0;
 	private String subscriptionList = "";
+	private long flowdetectionId = 0;
+	private String flowdetectionList = "";
 	private int idleLvapTimeout = 60; // Seconds
 
 	private final ConcurrentMap<Long, SubscriptionCallbackTuple> subscriptions = new ConcurrentHashMap<Long, SubscriptionCallbackTuple>();
+
+	private final ConcurrentMap<Long, FlowDetectionCallbackTuple> flowsdetection = new ConcurrentHashMap<Long, FlowDetectionCallbackTuple>();
 
 	// some defaults
 	static private final String DEFAULT_POOL_FILE = "poolfile";
@@ -100,7 +104,6 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	 */
 	synchronized void receivePing (final InetAddress odinAgentAddr) {
 		
-		//log.info("We receive a Ping from: " + odinAgentAddr.getHostAddress());
 		if (agentManager.receivePing(odinAgentAddr)) {
 			log.info(odinAgentAddr.getHostAddress() + " is a new agent");
 			// if the above leads to a new agent being
@@ -307,6 +310,50 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		}
 	}
 	
+
+	/**
+	 * Handle an event flow detection from an agent
+	 *
+     * @param odinAgentAddr InetAddress of the agent at which the event was triggered
+	 * @param detectedFlowIds  list of detected flow Ids that the event matches. String contains the detected flow: "IPSrcAddress IPDstAddress Protocol SrcPort DstPort"
+	 */
+	synchronized void receiveDetectedFlow (final InetAddress odinAgentAddr, final Map<Long, String> detectedFlowIds) {
+	
+		if (odinAgentAddr == null || detectedFlowIds == null)
+			return;
+	
+		//IOdinAgent oa = agentManager.getAgent(odinAgentAddr);
+		// This should never happen!
+		//if (oa == null)
+			//return;
+		// Update last-heard for failure detection
+		//oa.setLastHeard(System.currentTimeMillis());
+
+		//FIXME: Always detect all flows --> flowsdetection is equal to (IP source address  = *, IP destination address = *, Protocol = 0, Source Port = 0 and Destination Port = 0)
+		// list of detected flow Ids have a only ID (always is 1)
+		for (Entry<Long, String> entry: detectedFlowIds.entrySet()) {
+			FlowDetectionCallbackTuple tup = flowsdetection.get(entry.getKey());
+
+			if (tup == null)
+				continue;
+
+			final String[] fields = entry.getValue().split(" ");
+      	    final String IPSrcAddress = fields[0];
+			final String IPDstAddress = fields[1];
+			final int protocol = Integer.parseInt(fields[2]);
+			final int SrcPort = Integer.parseInt(fields[3]);
+			final int DstPort = Integer.parseInt(fields[4]);
+
+			log.info("We receive a detected flow "+ IPSrcAddress + " " + IPDstAddress + " " + protocol + " " + SrcPort + " " + DstPort + " " + "registered as Id: " + entry.getKey() + "  from: " + odinAgentAddr.getHostAddress());
+			
+			FlowDetectionCallbackContext cntx = new FlowDetectionCallbackContext(odinAgentAddr, IPSrcAddress, IPDstAddress, protocol, SrcPort, DstPort );
+			//FlowDetectionCallbackContext cntx = new FlowDetectionCallbackContext(oa, IPSrcAddress, IPDstAddress, protocol, SrcPort, DstPort );
+
+			tup.cb.exec(tup.oefd, cntx);
+		}
+	}
+
+
 	/**
 	 * VAP-Handoff a client to a new AP. This operation is idempotent.
 	 *
@@ -603,6 +650,105 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	}
 
 
+	/**
+	 * Add a flow detection for a particular event defined by oefd. cb
+	 * defines the application specified callback to be invoked during
+	 * notification. If the application plans to delete the flow detection,
+	 * later, the onus is upon it to keep track of the flow detection
+	 * id for removal later.
+	 *
+	 * @param oefd the flow detection
+	 * @param cb the callback
+	 */
+	@Override
+	public synchronized long registerFlowDetection (String pool, final OdinEventFlowDetection oefd, final FlowDetectionCallback cb) {
+		// FIXME: Need to calculate subscriptions per pool
+		
+		assert (oefd != null);
+		assert (cb != null);
+		
+		FlowDetectionCallbackTuple tup = new FlowDetectionCallbackTuple();
+		tup.oefd = oefd;
+		tup.cb = cb;
+		flowdetectionId++;
+		flowsdetection.put(flowdetectionId, tup);
+
+		/**
+		 * Update the flowsdetection list, and push to all agents
+		 * TODO: This is a common flow2detect string being
+		 * sent to all agents. Replace this with per-agent
+		 * flow2detect.
+		 */
+		flowdetectionList = "";
+		int count = 0;
+		for (Entry<Long, FlowDetectionCallbackTuple> entry: flowsdetection.entrySet()) {
+			count++;
+			flowdetectionList = flowdetectionList +
+								entry.getKey() + " " +
+								entry.getValue().oefd.getIPSrcAddress() + " " +
+								entry.getValue().oefd.getIPDstAddress() + " " +
+								entry.getValue().oefd.getProtocol() + " " +
+								entry.getValue().oefd.getSrcPort() + " " +
+								entry.getValue().oefd.getDstPort() + " ";
+		}
+
+		flowdetectionList = String.valueOf(count) + " " + flowdetectionList;
+
+		/**
+		 * FIXME:  Only one registered request: detect all flows. And it is not sent to agents 
+		 *
+		 * Only in case of sending to the agents the registered flows to detect
+		 * Should probably have threads to do this
+		 *
+		 *  for (InetAddress agentAddr : poolManager.getAgentAddrsForPool(pool)) {
+		 *	    pushSubscriptionListToAgent(agentManager.getAgent(agentAddr));
+			
+		}*/
+
+		return flowdetectionId;
+	}
+
+
+	/**
+	 * Remove a flow detection from the list
+	 *
+	 * @param id flow detection id to remove
+	 * @return
+	 */
+	@Override
+	public synchronized void unregisterFlowDetection (String pool, final long id) {
+		// FIXME: Need to calculate subscriptions per pool
+		flowsdetection.remove(id);
+
+		flowdetectionList = "";
+		int count = 0;
+		for (Entry<Long, FlowDetectionCallbackTuple> entry: flowsdetection.entrySet()) {
+			count++;
+			flowdetectionList = flowdetectionList +
+								entry.getKey() + " " +
+								entry.getValue().oefd.getIPSrcAddress() + " " +
+								entry.getValue().oefd.getIPDstAddress() + " " +
+								entry.getValue().oefd.getProtocol() + " " +
+								entry.getValue().oefd.getSrcPort() + " " +
+								entry.getValue().oefd.getDstPort() + " ";		
+		}
+
+		flowdetectionList = String.valueOf(count) + " " + flowdetectionList;
+
+		/**
+		 * FIXME:  Only one registered request: detect all flows. And it is not sent to agents 
+		 *
+		 * Only in case of sending to the agents the registered flows to detect
+		 * Should probably have threads to do this
+		 *
+		 *  for (InetAddress agentAddr : poolManager.getAgentAddrsForPool(pool)) {
+		 *	    pushSubscriptionListToAgent(agentManager.getAgent(agentAddr));
+			
+		}*/
+		
+	}
+
+	
 	/**
 	 * Add an SSID to the Odin network.
 	 *
@@ -1000,7 +1146,6 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 
         if (p2 == null)
         	return Command.CONTINUE;
-
         IPacket p3 = p2.getPayload(); // Application
         if ((p3 != null) && (p3 instanceof DHCP)) {
         	DHCP packet = (DHCP) p3;
@@ -1190,4 +1335,11 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		OdinEventSubscription oes;
 		NotificationCallback cb;
 	}
+
+	private class FlowDetectionCallbackTuple {
+		OdinEventFlowDetection oefd;
+		FlowDetectionCallback cb;
+	}
+
 }
+

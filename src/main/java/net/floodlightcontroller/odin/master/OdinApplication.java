@@ -6,8 +6,10 @@ import java.util.Set;
 
 import net.floodlightcontroller.odin.master.IOdinMasterToApplicationInterface;
 import net.floodlightcontroller.odin.master.NotificationCallback;
+import net.floodlightcontroller.odin.master.FlowDetectionCallback;
 import net.floodlightcontroller.odin.master.OdinClient;
 import net.floodlightcontroller.odin.master.OdinEventSubscription;
+import net.floodlightcontroller.odin.master.OdinEventFlowDetection;
 import net.floodlightcontroller.util.MACAddress;
 
 
@@ -143,6 +145,33 @@ public abstract class OdinApplication implements Runnable {
 	protected final void unregisterSubscription (long id) {
 		odinApplicationInterfaceToMaster.unregisterSubscription(pool, id);
 	}
+	
+
+	/**
+	 * Add a flow detection for a particular event defined by oefd. cb is
+	 * defines the application specified callback to be invoked during
+	 * flow detection. If the application plans to delete the flow detection,
+	 * later, the onus is upon it to keep track of the flow detection
+	 * id for removal later.
+	 * 
+	 * @param oes the flow detection
+	 * @param cb the callback
+	 */
+	protected final long registerFlowDetection (OdinEventFlowDetection oefd, FlowDetectionCallback cb){
+		return odinApplicationInterfaceToMaster.registerFlowDetection(pool, oefd, cb);
+	}
+	
+	
+	/**
+	 * Remove a flow detection from the list
+	 * 
+	 * @param id flow detection id to remove
+	 * @return
+	 */
+	protected final void unregisterFlowDetectionn (long id) {
+		odinApplicationInterfaceToMaster.unregisterFlowDetection(pool, id);
+	}
+
 	
 	
 	/**

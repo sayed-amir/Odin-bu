@@ -72,6 +72,10 @@ class OdinAgent implements IOdinAgent {
 	private static final String WRITE_HANDLER_SCAN_CLIENT = "scan_client";
 	private static final String ODIN_AGENT_ELEMENT = "odinagent";
 
+	//FIXME: Get detectionAgentIP from extern resource
+	private static final String detectionAgentIP = "192.168.1.14";
+	private static final String DETECTION_AGENT_ELEMENT = "detectionagent";
+
 	private final int TX_STAT_NUM_PROPERTIES = 7;
 	private final int RX_STAT_NUM_PROPERTIES = 7;
 	private final int ODIN_AGENT_PORT = 6777;
@@ -85,7 +89,6 @@ class OdinAgent implements IOdinAgent {
 	public InetAddress getIpAddress() {
 		return ipAddress;
 	}
-
 
 	/**
 	 * Returns timestamp of last heartbeat from agent
@@ -129,6 +132,7 @@ class OdinAgent implements IOdinAgent {
 
 			if (entry.equals(""))
 				break;
+						
 
 			/*
 			 * Every entry looks like this:
@@ -141,6 +145,7 @@ class OdinAgent implements IOdinAgent {
 			Lvap lvap;
 			try {
 				// First, get the list of all the SSIDs
+
 				ArrayList<String> ssidList = new ArrayList<String>();
 				for (int i = 3; i < properties.length; i++) {
 					ssidList.add (properties[i]);
@@ -468,18 +473,21 @@ class OdinAgent implements IOdinAgent {
 	 * @return read-handler string
 	 */
 	private synchronized String invokeReadHandler(String handlerName) {
-		outBuf.println("READ " + ODIN_AGENT_ELEMENT + "." + handlerName);
-
+		//log.info("[invokeReadHandler] Begin " + handlerName);
+		//log.info("[invokeReadHandler] IP address of detection agent is " + this.detectionAgentIP);
+		//log.info("[invokeReadHandler] IP address of agent is " + this.ipAddress);
+		if (this.ipAddress.getHostAddress().equals(this.detectionAgentIP))
+		   	outBuf.println("READ " + DETECTION_AGENT_ELEMENT + "." + handlerName);
+		else outBuf.println("READ " + ODIN_AGENT_ELEMENT + "." + handlerName);
+		
 		String line = "";
 
 		try {
 			String data = null;
-
 			while ((data = inBuf.readLine()).contains("DATA") == false) {
 				// skip all the crap that the Click control
 				// socket tells us
 			}
-
 			int numBytes = Integer.parseInt(data.split(" ")[1]);
 
 			while (numBytes != 0) {
@@ -488,12 +496,12 @@ class OdinAgent implements IOdinAgent {
 				inBuf.read(buf);
 				line = line + new String(buf);
 			}
-
+			//log.info("[invokeReadHandler] End " + handlerName + line);
 			return line;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		//log.info("[invokeReadHandler] End " + handlerName);
 		return null;
 	}
 
@@ -506,10 +514,15 @@ class OdinAgent implements IOdinAgent {
 	 */
 	private synchronized void invokeWriteHandler(String handlerName,
 			String handlerText) {
-		outBuf.println("WRITE " + ODIN_AGENT_ELEMENT + "." + handlerName + " "
-				+ handlerText);
-		//log.info("WRITE " + ODIN_AGENT_ELEMENT + "." + handlerName + " "
-		//		+ handlerText);
+		//log.info("[invokeWriteHandler] Begin " + handlerName);
+		//log.info("[invokeWriteHandler] IP address of detection agent is " + this.detectionAgentIP);
+		//log.info("[invokeWriteHandler] IP address of agent is " + this.ipAddress);
+		if (this.ipAddress.getHostAddress().equals(this.detectionAgentIP))
+		   	outBuf.println("WRITE " + DETECTION_AGENT_ELEMENT + "." + handlerName + " " + handlerText);
+		else outBuf.println("WRITE " + ODIN_AGENT_ELEMENT + "." + handlerName + " " + handlerText);
+
+		//outBuf.println("WRITE " + ODIN_AGENT_ELEMENT + "." + handlerName + " " + handlerText);
+		//log.info("[invokeWriteHandler] End " + handlerName);
 	}
 
 

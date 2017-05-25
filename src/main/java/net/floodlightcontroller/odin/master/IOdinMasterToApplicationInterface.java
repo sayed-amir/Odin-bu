@@ -71,6 +71,28 @@ interface IOdinMasterToApplicationInterface {
 	
 	
 	/**
+	 * Add a flow detection for a particular event defined by oefd. cb is
+	 * defines the application specified callback to be invoked during
+	 * flow detection. If the application plans to delete the flow detection,
+	 * later, the onus is upon it to keep track of the flow detection
+	 * id for removal later.
+	 * 
+	 * @param oefd the flow detection 
+	 * @param cb the callback
+	 */
+	long registerFlowDetection (String pool, OdinEventFlowDetection oefd, FlowDetectionCallback cb);
+	
+	
+	/**
+	 * Remove a flow detection from the list
+	 * 
+	 * @param id flow detection id to remove
+	 * @return
+	 */
+	void unregisterFlowDetection (String pool, long id);
+
+
+	/**
 	 * Add an SSID to the Odin network.
 	 * 
 	 * @param networkName

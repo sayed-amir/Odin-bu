@@ -35,9 +35,9 @@ public class MobilityManager extends OdinApplication {
 		this.HYSTERESIS_THRESHOLD = 15000;
 		this.IDLE_CLIENT_THRESHOLD = 180000;
 		this.SIGNAL_STRENGTH_THRESHOLD = 0;
-		this.SIGNAL_THRESHOLD = 215;
+		this.SIGNAL_THRESHOLD = 200;
 		this.SCANNING_TIME = 1000; 
-		this.STA = "*";
+		this.STA = "40:A5:EF:05:9B:A0";
 		this.VALUE = "signal";
 		this.scan = true;
 	}
@@ -80,6 +80,7 @@ public class MobilityManager extends OdinApplication {
 	private void handler (OdinEventSubscription oes, NotificationCallbackContext cntx) {
 		OdinClient client = getClientFromHwAddress(cntx.clientHwAddress);
 		long lastScanningResult = 0;
+		long greaterscanningresult = 0;
 		/* The client is not registered in Odin, exit */
 		if (client == null)
 			return;
@@ -90,6 +91,8 @@ public class MobilityManager extends OdinApplication {
 		if (!clientMap.containsKey(cntx.clientHwAddress)) {
 			clientMap.put(cntx.clientHwAddress, new MobilityStats(cntx.value, currentTimestamp, currentTimestamp, cntx.agent.getIpAddress(), cntx.value));
 		}
+		else clientMap.put(cntx.clientHwAddress, new MobilityStats(cntx.value, currentTimestamp, clientMap.get(cntx.clientHwAddress).assignmentTimestamp, cntx.agent.getIpAddress(), clientMap.get(cntx.clientHwAddress).scanningResult));
+			 
 		// get the statistics of that client
 		MobilityStats stats = clientMap.get(cntx.clientHwAddress);
 				
@@ -102,6 +105,7 @@ public class MobilityManager extends OdinApplication {
 					+ " to agent " + stats.agentAddr + " at " + System.currentTimeMillis());
 			handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
 			updateStatsWithReassignment (stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
+			clientMap.put(cntx.clientHwAddress,stats);
 			return;
 		}
 		
@@ -112,6 +116,7 @@ public class MobilityManager extends OdinApplication {
 					+ " was idle longer than " + IDLE_CLIENT_THRESHOLD/1000 + " sec -> Reassociating it to agent " + stats.agentAddr);
 			handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
 			updateStatsWithReassignment (stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
+			clientMap.put(cntx.clientHwAddress,stats);
 			return;
 		}
 		
@@ -120,29 +125,41 @@ public class MobilityManager extends OdinApplication {
 			// Don't bother if we're not within hysteresis period
 			if (currentTimestamp - stats.assignmentTimestamp < HYSTERESIS_THRESHOLD)
 				return;
+			
 			/* Scan and update statistics */
+			greaterscanningresult = stats.scanningResult;
 			for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
+				
 				if (cntx.agent.getIpAddress().equals(agentAddr)) {
-					log.info("MobilityManager: Do not Scan client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
+					log.info("MobilityManager: Do not Scan client " + cntx.clientHwAddress + " in agent (Skip same AP) " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
 					continue; // Skip same AP
 				}
 				else {
 					log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()));
 					lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(cntx.agent.getIpAddress()), this.SCANNING_TIME);
 					//scan = false; // For testing only once
-					if (lastScanningResult >= stats.signalStrength) {
 					//if (lastScanningResult >= 50) { // testing
-						updateStatsWithReassignment(stats, lastScanningResult, currentTimestamp, agentAddr, lastScanningResult);
+					if (lastScanningResult > stats.signalStrength) {
+					      greaterscanningresult = stats.signalStrength;
+						  updateStatsWithReassignment(stats, lastScanningResult, currentTimestamp, agentAddr, greaterscanningresult);
 					}
-					else {
-						updateStatsWithReassignment(stats, cntx.value, currentTimestamp, stats.agentAddr, stats.scanningResult);
-					}
-					log.info("MobilityManager: Scaned client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()) + " with power " + lastScanningResult);
+					else if (greaterscanningresult > lastScanningResult) {
+					      greaterscanningresult = lastScanningResult;
+					     }
+					log.info("MobilityManager: Scanned client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()) + " with power " + lastScanningResult);
 				}
 			}
-			log.info("MobilityManager: signal strengths: new = " + lastScanningResult + " old = " + stats.signalStrength + " + " + SIGNAL_STRENGTH_THRESHOLD + " :" + "handing off client " + cntx.clientHwAddress
+			
+			if (cntx.agent.getIpAddress().equals(stats.agentAddr)) {
+			  stats.scanningResult = greaterscanningresult;
+			  clientMap.put(cntx.clientHwAddress,stats);
+			  return;
+			}
+			
+			log.info("MobilityManager: signal strengths: new = " + stats.signalStrength + " old = " + cntx.value + " + " + SIGNAL_STRENGTH_THRESHOLD + " :" + "handing off client " + cntx.clientHwAddress
 						+ " to agent " + stats.agentAddr);
 			handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
+			clientMap.put(cntx.clientHwAddress,stats);
 			return;
 		}
 		

@@ -62,7 +62,7 @@ HashSet<OdinClient> clients;
 	    for (OdinClient oc: clients) {  // all the clients currently associated
 	    // NOTE: the clients currently associated MAY NOT be the same as the clients who have statistics
 
-	    System.out.println("\n[ShowStatistics] 1" + agentAddr);
+	    //System.out.println("\n[ShowStatistics] Corrected read");
 	    
          // for each STA associated to the Agent
 	     for (Entry<MACAddress, Map<String, String>> vals_entry_rx: vals_rx.entrySet()) {
