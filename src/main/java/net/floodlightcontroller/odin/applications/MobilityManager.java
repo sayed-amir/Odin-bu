@@ -27,6 +27,8 @@ public class MobilityManager extends OdinApplication {
 	private final long SIGNAL_STRENGTH_THRESHOLD; 	// Signal strength threshold
 	private final long SIGNAL_THRESHOLD; 			// Signal threshold (milliseconds)
 	private final int SCANNING_TIME; 				// Time (milliseconds) for scanning in another agent
+	private final int TIME_TO_START; 				// Time (milliseconds) for starting the agents
+	private final int NUMBER_OF_SCANS; 				// Number of retries if no packet is recieved during scan
 	private final String STA; 						// Handle a mac or all STAs ("*")
 	private final String VALUE; 					// Parameter to measure (signal, noise, rate, etc.)
 	private boolean scan; 							// For testing only once
@@ -35,11 +37,14 @@ public class MobilityManager extends OdinApplication {
 		this.HYSTERESIS_THRESHOLD = 15000;
 		this.IDLE_CLIENT_THRESHOLD = 180000;
 		this.SIGNAL_STRENGTH_THRESHOLD = 0;
-		this.SIGNAL_THRESHOLD = 200;
+		this.SIGNAL_THRESHOLD = 205;
 		this.SCANNING_TIME = 1000; 
-		this.STA = "40:A5:EF:05:9B:A0";
+		/*this.STA = "40:A5:EF:05:9B:A0";*/
+		this.STA = "*";
 		this.VALUE = "signal";
 		this.scan = true;
+		this.TIME_TO_START = 30000; // Time (milliseconds) for starting the agents. Mobility manager will only manage the agent started before this period ends
+		this.NUMBER_OF_SCANS = 1;  // Number of retries if no packet is recieved during scan
 	}
 
 	/**
@@ -58,12 +63,14 @@ public class MobilityManager extends OdinApplication {
 		};
 		/* Before executing this line, make sure the agents declared in poolfile are started */	
 		registerSubscription(oes, cb);
+		
+		log.info("MobilityManager: register");  
 	}
 
 	@Override
 	public void run() {
 		/* When the application runs, you need some time to start the agents */
-		this.giveTime(30000);
+		this.giveTime(this.TIME_TO_START);
 		//this.channelAssignment();
 		//this.giveTime(10000);
 		//setAgentTimeout(10000);
@@ -81,6 +88,13 @@ public class MobilityManager extends OdinApplication {
 		OdinClient client = getClientFromHwAddress(cntx.clientHwAddress);
 		long lastScanningResult = 0;
 		long greaterscanningresult = 0;
+		int scannumber = 0;
+		
+		/*
+		log.info("\n*\n*\n*\n*\n*\n*");
+		log.info("MobilityManager: publish received from " + cntx.clientHwAddress
+                                        + " in agent " + cntx.agent.getIpAddress());*/
+
 		/* The client is not registered in Odin, exit */
 		if (client == null)
 			return;
@@ -128,24 +142,40 @@ public class MobilityManager extends OdinApplication {
 			
 			/* Scan and update statistics */
 			greaterscanningresult = stats.scanningResult;
+			log.info("MobilityManager: STA current power in its client: "+greaterscanningresult);
+			
 			for (InetAddress agentAddr: getAgents()) { // FIXME: scan for nearby agents only 
 				
+				// This is the agent where the STA is associated, so we don't scan
 				if (cntx.agent.getIpAddress().equals(agentAddr)) {
 					log.info("MobilityManager: Do not Scan client " + cntx.clientHwAddress + " in agent (Skip same AP) " + agentAddr + " and channel " + getChannelFromAgent(agentAddr));
 					continue; // Skip same AP
 				}
+				// Scanning in the rest of APs
 				else {
 					log.info("MobilityManager: Scanning client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()));
-					lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(cntx.agent.getIpAddress()), this.SCANNING_TIME);
+					// Send the scanning request to the agent
+					
+					//while ( (scannumber != this.NUMBER_OF_SCANS) || (lastScanningResult != 0)){
+                    
+                    lastScanningResult = scanClientFromAgent(agentAddr, cntx.clientHwAddress, getChannelFromAgent(cntx.agent.getIpAddress()), this.SCANNING_TIME);
+                    log.info("MobilityManager: Last Scanning Result: "+lastScanningResult);
+                    scannumber++;
+                        
+					
+					//}
 					//scan = false; // For testing only once
 					//if (lastScanningResult >= 50) { // testing
+					//log.info("MobilityManager: lastScanningResult: "+lastScanningResult);
 					if (lastScanningResult > stats.signalStrength) {
-					      greaterscanningresult = stats.signalStrength;
+					      //greaterscanningresult = stats.signalStrength; 
+					      greaterscanningresult = lastScanningResult;// si es mayor que la potencia del STA actualizamos
 						  updateStatsWithReassignment(stats, lastScanningResult, currentTimestamp, agentAddr, greaterscanningresult);
 					}
-					else if (greaterscanningresult > lastScanningResult) {
+					else if (greaterscanningresult < lastScanningResult) { // si el ultimo escaneo es mayor actualizamos
 					      greaterscanningresult = lastScanningResult;
 					     }
+                    log.info("MobilityManager: Higher Scanning result: "+greaterscanningresult);
 					log.info("MobilityManager: Scanned client " + cntx.clientHwAddress + " in agent " + agentAddr + " and channel " + getChannelFromAgent(cntx.agent.getIpAddress()) + " with power " + lastScanningResult);
 				}
 			}
@@ -153,6 +183,7 @@ public class MobilityManager extends OdinApplication {
 			if (cntx.agent.getIpAddress().equals(stats.agentAddr)) {
 			  stats.scanningResult = greaterscanningresult;
 			  clientMap.put(cntx.clientHwAddress,stats);
+			  log.info("MobilityManager: no hand off");
 			  return;
 			}
 			
@@ -160,6 +191,7 @@ public class MobilityManager extends OdinApplication {
 						+ " to agent " + stats.agentAddr);
 			handoffClientToAp(cntx.clientHwAddress, stats.agentAddr);
 			clientMap.put(cntx.clientHwAddress,stats);
+			//log.info("\n*\n*\n*\n*\n*\n*");
 			return;
 		}
 		
