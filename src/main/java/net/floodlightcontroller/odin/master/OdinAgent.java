@@ -73,7 +73,7 @@ class OdinAgent implements IOdinAgent {
 	private static final String ODIN_AGENT_ELEMENT = "odinagent";
 
 	//FIXME: Get detectionAgentIP from extern resource
-	private static final String detectionAgentIP = "192.168.1.200";
+	private static final String detectionAgentIP = OdinMaster.detector_ip_address;
 	private static final String DETECTION_AGENT_ELEMENT = "detectionagent";
 
 	private final int TX_STAT_NUM_PROPERTIES = 7;
