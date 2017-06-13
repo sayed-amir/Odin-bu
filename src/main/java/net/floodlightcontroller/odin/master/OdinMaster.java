@@ -74,6 +74,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	private final ConcurrentMap<Long, SubscriptionCallbackTuple> subscriptions = new ConcurrentHashMap<Long, SubscriptionCallbackTuple>();
 
 	private final ConcurrentMap<Long, FlowDetectionCallbackTuple> flowsdetection = new ConcurrentHashMap<Long, FlowDetectionCallbackTuple>();
+	
+	public static String detector_ip_address = "";
 
 	// some defaults
 	static private final String DEFAULT_POOL_FILE = "poolfile";
@@ -1020,6 +1022,23 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 					appInstance.setOdinInterface(this);
 					appInstance.setPool(poolName);
 					applicationList.add(appInstance);
+				}
+				// DETECTION AGENT
+				strLine = br.readLine();
+
+				if (strLine == null) {
+					log.error("Unexpected EOF after DETECTION field for pool: " + poolName);
+					System.exit(1);
+				}
+
+				fields = strLine.split(" ");
+
+				if (fields[0].equals("DETECTION")) {
+					OdinMaster.detector_ip_address = fields[1];
+					log.info("Detector ip address " + OdinMaster.detector_ip_address);
+				}else{
+					log.info("No DETECTION field defined in poolfile");
+					OdinMaster.detector_ip_address = "0.0.0.0";
 				}
 			}
 
