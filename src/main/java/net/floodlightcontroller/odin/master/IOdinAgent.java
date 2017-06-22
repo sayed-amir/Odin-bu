@@ -202,5 +202,53 @@ public interface IOdinAgent {
 	 * 
 	 */
 	public int scanClient (MACAddress clientHwAddr, int channel, int time);
+
+
+
+	/**
+	 * Request scanned stations statistics from the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @param #channel to scan
+	 * @param time interval to scan
+	 * @param ssid to scan (always is *)
+	 * @ If request is accepted return 1, otherwise, return 0
+	 */
+	public int requestScannedStationsStats (int channel, String ssid);
+
+
+	/**
+	 * Retreive scanned stations statistics from the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @return Key-Value entries of each recorded statistic for each station 
+	 */
+	public Map<MACAddress, Map<String, String>> getScannedStationsStats (String ssid);
+
+
+	/**
+	 * Request scanned stations statistics from the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @param #channel to send mesurement beacon
+	 * @param time interval to send mesurement beacon
+	 * @param ssid to scan (e.g odin_init)
+	 * @ If request is accepted return 1, otherwise, return 0
+	 */
+	public int requestSendMesurementBeacon (int channel, String ssid);
+		
+
+	/**
+	 * Stop sending mesurement beacon from the agent
+	 * 
+	 * @param agentAddr InetAddress of the agent
+	 * 
+	 */
+	public int stopSendMesurementBeacon ();
 	
+	/**
+	 * Returns the Detector IP address added in poolfile
+	 * 
+	 * @return Detector InetAddress
+	 */
+	public String setDetectorIpAddress ();
+	
+		
 }

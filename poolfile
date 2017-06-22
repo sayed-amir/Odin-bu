@@ -1,8 +1,31 @@
 # Pool-1
 NAME pool-1
-NODES 192.168.1.9 192.168.1.10
+NODES 192.168.1.14 192.168.1.15
 NETWORKS wi5-demo
-APPLICATIONS net.floodlightcontroller.odin.applications.ShowStatistics
+
+####### Now applications and its parameters are defined ######
+
+####### FlowDetectionManager params
+####### DETECTION IpAddressOfDetector
+# APPLICATION net.floodlightcontroller.odin.applications.FlowDetectionManager
+# DETECTION 192.168.1.200
+
+# APPLICATION net.floodlightcontroller.odin.applications.ShowStatistics
+
+####### MobilityManager params
+####### MOBILITY TimeToStart(seg) IdleClient(seg) Hysteresis(seg) SignalThreshold(dBm) ScanningTime(seg) NumberOfTriggers TimerResetTriggers(seg)
+# APPLICATION net.floodlightcontroller.odin.applications.MobilityManager
+# MOBILITY 30 180 15 -56 1 5 1
+
+####### ShowScannedStationsStatistics params
+####### INTERFERENCES TimeToStart(seg) ReportingPeriod(seg) ScanningInterval(seg) AddedTime(seg)
+# APPLICATION net.floodlightcontroller.odin.applications.ShowScannedStationsStatistics
+# INTERFERENCES 30 30 5 1
+
+####### ShowMatrixOfDistancedBs params
+####### MATRIX TimeToStart(seg) ReportingPeriod(seg) ScanningInterval(seg) AddedTime(seg) Channel
+# APPLICATION net.floodlightcontroller.odin.applications.ShowMatrixOfDistancedBs
+# MATRIX 30 30 5 1 6
 
 # Pool-2
 #NAME pool-2

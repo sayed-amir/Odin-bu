@@ -133,4 +133,33 @@ class StubOdinAgent implements IOdinAgent {
 	public int scanClient(MACAddress clientHwAddr, int channel, int time){
 		return lastScan;
 	}
+
+	@Override
+	public int requestScannedStationsStats (int channel, String ssid){
+		return 1;
+	}
+
+
+	@Override
+	public Map<MACAddress, Map<String, String>> getScannedStationsStats (String ssid){
+		return null;
+	}
+
+
+	@Override
+	public int requestSendMesurementBeacon (int channel, String ssid){
+		return 1;
+	}
+		
+	@Override
+	public int stopSendMesurementBeacon (){
+		return 1;
+	}
+	
+	public String setDetectorIpAddress(){
+		return null;	
+	}
+	
+
+
 }
