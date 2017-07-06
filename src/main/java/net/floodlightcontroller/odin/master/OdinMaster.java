@@ -1156,7 +1156,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 					}
 					
 					if (fields[0].equals("MATRIX")){							// MATRIX OF DISTANCES
-						matrix_params = new ScannParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt(fields[5]));
+						matrix_params = new ScannParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt(fields[5]),"");
 						log.info("ShowMatrixOfDistancedBs configured:");
 						log.info("\t\tTime_to_start: " + matrix_params.time_to_start);
 						log.info("\t\tReporting_period: " + matrix_params.reporting_period);
@@ -1168,12 +1168,21 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 					}
 
 					if (fields[0].equals("INTERFERENCES")){							// INTERFERENCES
-						interference_params = new ScannParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt("0"));
+                        if(fields.length==6){// Filename added in poolfile
+                            interference_params = new ScannParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt("0"),fields[5]);
+						}else{// Not filename added in poolfile
+                            interference_params = new ScannParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt("0"),"");
+						}
 						log.info("ShowScannedStationsStatistics configured:");
 						log.info("\t\tTime_to_start: " + interference_params.time_to_start);
 						log.info("\t\tReporting_period: " + interference_params.reporting_period);
 						log.info("\t\tScanning_interval: " + interference_params.scanning_interval);
 						log.info("\t\tAdded_time: " + interference_params.added_time);
+						if(interference_params.filename.length()>0){
+                            log.info("\t\tFilename: " + interference_params.filename);
+                        }else{
+                            log.info("\t\tFilename not assigned");
+                        }
 						br.mark(1000);
 						continue;
 					}
@@ -1533,13 +1542,15 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		public int scanning_interval;
 		public int added_time;
 		public int channel;
+		public String filename;
 
-		public ScannParams (int time_to_start, int reporting_period, int scanning_interval, int added_time,	int channel) {
+		public ScannParams (int time_to_start, int reporting_period, int scanning_interval, int added_time,	int channel, String filename) {
 			this.time_to_start = time_to_start*1000;
 			this.reporting_period = reporting_period*1000;
 			this.scanning_interval = scanning_interval*1000;
 			this.added_time = added_time*1000;
 			this.channel = channel;
+			this.filename = filename;
 		}
 	}
 

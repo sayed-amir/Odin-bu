@@ -6,11 +6,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 
 import net.floodlightcontroller.odin.master.OdinApplication;
 import net.floodlightcontroller.odin.master.OdinClient;
 import net.floodlightcontroller.odin.master.OdinMaster.ScannParams;
 import net.floodlightcontroller.util.MACAddress;
+
+import org.apache.commons.io.output.TeeOutputStream;
 
 public class ShowScannedStationsStatistics extends OdinApplication {
 
@@ -47,6 +53,25 @@ HashSet<OdinClient> clients;
         
 		clients = new HashSet<OdinClient>(getClients());
 		
+		// Write on file integration
+		PrintStream stdout = System.out; // To enable return to console
+		FileOutputStream fos = null;
+        PrintStream ps = null;
+		
+		if(SCANN_PARAMS.filename.length()>0){
+            File f = new File(SCANN_PARAMS.filename); // FIXME: Add parameter to poolfile
+
+            try {
+                fos = new FileOutputStream(f);
+                //we will want to print in standard "System.out" and in "file"
+                TeeOutputStream myOut=new TeeOutputStream(System.out, fos);
+                ps = new PrintStream(myOut, true); //true - auto-flush after println
+                System.setOut(ps); // Both outputs enabled
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+		
 		System.out.println("[ShowScannedStationsStatistics] External Monitoring Table"); 
 		System.out.println("[ShowScannedStationsStatistics] ================"); 
 		System.out.println("[ShowScannedStationsStatistics]");
@@ -61,7 +86,9 @@ HashSet<OdinClient> clients;
 			System.out.println("[ShowScannedStationsStatistics] Request for scanning during the interval of  " + SCANN_PARAMS.scanning_interval + " ms in SSID " + SCANNED_SSID);	
 			for (InetAddress agentAddr: getAgents()) {
 	  
-				System.out.println("[ShowScannedStationsStatistics] Agent: " + agentAddr);	
+				System.out.println("[ShowScannedStationsStatistics] Agent: " + agentAddr);
+				if(SCANN_PARAMS.filename.length()>0)
+                    System.setOut(stdout); // Return to only console
  				
 				// Request statistics
 				result = requestScannedStationsStatsFromAgent(agentAddr, num_channel, SCANNED_SSID);		
@@ -74,13 +101,15 @@ HashSet<OdinClient> clients;
 			catch (InterruptedException e) {
 							e.printStackTrace();
 				}
-				
-			for (InetAddress agentAddr: getAgents()) {			
-				
+			
+			for (InetAddress agentAddr: getAgents()) {
+                
+                if(SCANN_PARAMS.filename.length()>0)
+                    System.setOut(ps); // Both outputs enabled
 				System.out.println("[ShowScannedStationsStatistics]");
 				System.out.println("[ShowScannedStationsStatistics] Agent: " + agentAddr + " in channel " + num_channel);
 
-				// Reception statistics
+				// Reception statistics 
 				if (scanningAgents.get(agentAddr) == 0) {
 					System.out.println("[ShowScannedStationsStatistics] Agent BUSY during scanning operation");
 					continue;				
@@ -132,11 +161,24 @@ HashSet<OdinClient> clients;
 					System.out.println("");		
 				}
 		    }
-
-		} 
+		}
+		if(SCANN_PARAMS.filename.length()>0){
+            System.setOut(stdout); // Return to only console
+            closeQuietly(fos); // Close Stream
+        }
+		promptEnterKey(); // FIXME: Maybe we want to save multiple scannings, changing the filename in each iteration
+		
 	  } catch (InterruptedException e) {
 	      e.printStackTrace();
 	    }
 	}
   }
+public void promptEnterKey(){ // Function to ask for a key
+   System.out.println("Press \"ENTER\" to continue...");
+   Scanner scanner = new Scanner(System.in);
+   scanner.nextLine();
+}
+void closeQuietly(FileOutputStream out) { // Function to close the stream
+    try { out.flush(); out.close(); } catch(Exception e) {} 
+}
 } 

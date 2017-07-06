@@ -1,6 +1,6 @@
 # Pool-1
 NAME pool-1
-NODES 192.168.1.14 192.168.1.15
+NODES 192.168.1.13 192.168.1.14 192.168.1.15
 NETWORKS wi5-demo
 
 ####### Now applications and its parameters are defined ######
@@ -17,10 +17,11 @@ NETWORKS wi5-demo
 # APPLICATION net.floodlightcontroller.odin.applications.MobilityManager
 # MOBILITY 30 180 15 -56 1 5 1
 
-####### ShowScannedStationsStatistics params
-####### INTERFERENCES TimeToStart(seg) ReportingPeriod(seg) ScanningInterval(seg) AddedTime(seg)
+####### ShowScannedStationsStatistics params - Optional filename to save statistics
+####### INTERFERENCES TimeToStart(seg) ReportingPeriod(seg) ScanningInterval(seg) AddedTime(seg) Filename
 # APPLICATION net.floodlightcontroller.odin.applications.ShowScannedStationsStatistics
-# INTERFERENCES 30 30 5 1
+# INTERFERENCES 30 30 5 1 ScannedStationsStatistics.txt
+
 
 ####### ShowMatrixOfDistancedBs params
 ####### MATRIX TimeToStart(seg) ReportingPeriod(seg) ScanningInterval(seg) AddedTime(seg) Channel
