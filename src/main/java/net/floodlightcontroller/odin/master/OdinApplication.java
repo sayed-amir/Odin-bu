@@ -6,8 +6,12 @@ import java.util.Set;
 
 import net.floodlightcontroller.odin.master.IOdinMasterToApplicationInterface;
 import net.floodlightcontroller.odin.master.NotificationCallback;
+import net.floodlightcontroller.odin.master.FlowDetectionCallback;
 import net.floodlightcontroller.odin.master.OdinClient;
 import net.floodlightcontroller.odin.master.OdinEventSubscription;
+import net.floodlightcontroller.odin.master.OdinMaster.MobilityParams;
+import net.floodlightcontroller.odin.master.OdinMaster.ScannParams;
+import net.floodlightcontroller.odin.master.OdinEventFlowDetection;
 import net.floodlightcontroller.util.MACAddress;
 
 
@@ -109,7 +113,69 @@ public abstract class OdinApplication implements Runnable {
 	protected final Map<MACAddress, Map<String, String>> getRxStatsFromAgent (InetAddress agentAddr) {
 		return odinApplicationInterfaceToMaster.getRxStatsFromAgent(pool, agentAddr);
 	}
-	
+
+
+	/**
+	 * Request scanned stations statistics from the agent
+	 * 
+	 * @param agentAddr InetAddress of the agent
+	 * 
+	 * @param #channel to scan
+	 * 
+	 * @param time interval to scan
+	 * 
+	 * @param ssid to scan (always is *)
+	 * 
+	 * @ If request is accepted return 1, otherwise, return 0
+	 */
+	protected final int requestScannedStationsStatsFromAgent (InetAddress agentAddr, int channel, String ssid) {
+		return odinApplicationInterfaceToMaster.requestScannedStationsStatsFromAgent(pool, agentAddr, channel, ssid);
+	}
+
+
+	/**
+	 * Retreive scanned stations statistics from the agent
+	 * 
+	 * @param agentAddr InetAddress of the agent  
+	 * 
+	 * @return Key-Value entries of each recorded statistic for each station 
+	 */
+	protected final Map<MACAddress, Map<String, String>> getScannedStationsStatsFromAgent (InetAddress agentAddr, String ssid) {
+		return odinApplicationInterfaceToMaster.getScannedStationsStatsFromAgent(pool, agentAddr, ssid);
+	}
+
+
+	/**
+	 * Request scanned stations statistics from the agent
+	 * 
+	 * @param agentAddr InetAddress of the agent
+	 * 
+	 * @param #channel to send mesurement beacon
+	 * 
+	 * @param time interval to send mesurement beacon
+	 * 
+	 * @param ssid to scan (e.g odin_init)
+	 * 
+	 * @ If request is accepted return 1, otherwise, return 0
+	 */
+	protected final int requestSendMesurementBeaconFromAgent (InetAddress agentAddr, int channel, String ssid) {
+		return odinApplicationInterfaceToMaster.requestSendMesurementBeaconFromAgent(pool, agentAddr, channel, ssid);
+	}
+
+
+
+	/**
+	 * Stop sending mesurement beacon from the agent
+	 * 
+	 * @param agentAddr InetAddress of the agent
+	 * 
+	 */
+	protected final int stopSendMesurementBeaconFromAgent (InetAddress agentAddr) {
+		return odinApplicationInterfaceToMaster.stopSendMesurementBeaconFromAgent(pool, agentAddr);
+	}
+
+
+
 	/**
 	 * Get a list of Odin agents from the agent tracker
 	 * @return a map of OdinAgent objects keyed by Ipv4 addresses
@@ -143,6 +209,33 @@ public abstract class OdinApplication implements Runnable {
 	protected final void unregisterSubscription (long id) {
 		odinApplicationInterfaceToMaster.unregisterSubscription(pool, id);
 	}
+	
+
+	/**
+	 * Add a flow detection for a particular event defined by oefd. cb is
+	 * defines the application specified callback to be invoked during
+	 * flow detection. If the application plans to delete the flow detection,
+	 * later, the onus is upon it to keep track of the flow detection
+	 * id for removal later.
+	 * 
+	 * @param oes the flow detection
+	 * @param cb the callback
+	 */
+	protected final long registerFlowDetection (OdinEventFlowDetection oefd, FlowDetectionCallback cb){
+		return odinApplicationInterfaceToMaster.registerFlowDetection(pool, oefd, cb);
+	}
+	
+	
+	/**
+	 * Remove a flow detection from the list
+	 * 
+	 * @param id flow detection id to remove
+	 * @return
+	 */
+	protected final void unregisterFlowDetectionn (long id) {
+		odinApplicationInterfaceToMaster.unregisterFlowDetection(pool, id);
+	}
+
 	
 	
 	/**
@@ -212,5 +305,16 @@ public abstract class OdinApplication implements Runnable {
 	protected final int scanClientFromAgent (InetAddress agentAddr, MACAddress clientHwAddr, int channel, int time){
 		return odinApplicationInterfaceToMaster.scanClientFromAgent(pool, agentAddr, clientHwAddr, channel, time);
 	}
-
+	
+	protected final MobilityParams getMobilityParams (){
+		return odinApplicationInterfaceToMaster.getMobilityParams();
+	}
+	
+	protected final ScannParams getMatrixParams (){
+		return odinApplicationInterfaceToMaster.getMatrixParams();
+	}
+	
+	protected final ScannParams getInterferenceParams (){
+		return odinApplicationInterfaceToMaster.getInterferenceParams();
+	}
 }

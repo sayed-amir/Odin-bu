@@ -104,7 +104,7 @@ class AgentManager {
 		//if we receive a ping from a new agent
 		if (!isTracked (odinAgentAddr)) {
 
-			log.info("Ping message from: " + odinAgentAddr);
+			log.debug("Ping message from: " + odinAgentAddr);
 
 		};
 
