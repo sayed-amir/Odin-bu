@@ -80,8 +80,8 @@ class OdinAgent implements IOdinAgent {
 	private final String detectionAgentIP = setDetectorIpAddress();
 	private static final String DETECTION_AGENT_ELEMENT = "detectionagent";
 
-	private final int TX_STAT_NUM_PROPERTIES = 7;
-	private final int RX_STAT_NUM_PROPERTIES = 7;
+	private final int TX_STAT_NUM_PROPERTIES = 8;
+	private final int RX_STAT_NUM_PROPERTIES = 8;
 	private final int MTX_DISTANCE_RX_STAT_NUM_PROPERTIES = 1;
 	private final int ODIN_AGENT_PORT = 6777;
 
