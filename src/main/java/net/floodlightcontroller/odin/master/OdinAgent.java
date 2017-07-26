@@ -73,15 +73,15 @@ class OdinAgent implements IOdinAgent {
 	private static final String WRITE_HANDLER_CHANNEL_SWITCH_ANNOUNCEMENT = "channel_switch_announcement";
 	private static final String WRITE_HANDLER_SCAN_CLIENT = "scan_client";
 	private static final String WRITE_HANDLER_SCAN_APS = "scan_APs";
-	private static final String WRITE_HANDLER_SEND_MESUREMENT_BEACON = "send_mesurement_beacon";
+	private static final String WRITE_HANDLER_SEND_MEASUREMENT_BEACON = "send_measurement_beacon";
 	private static final String WRITE_HANDLER_SCANING_FLAGS = "scanning_flags";
 	private static final String ODIN_AGENT_ELEMENT = "odinagent";
 
 	private final String detectionAgentIP = setDetectorIpAddress();
 	private static final String DETECTION_AGENT_ELEMENT = "detectionagent";
 
-	private final int TX_STAT_NUM_PROPERTIES = 7;
-	private final int RX_STAT_NUM_PROPERTIES = 7;
+	private final int TX_STAT_NUM_PROPERTIES = 8;
+	private final int RX_STAT_NUM_PROPERTIES = 8;
 	private final int MTX_DISTANCE_RX_STAT_NUM_PROPERTIES = 1;
 	private final int ODIN_AGENT_PORT = 6777;
 
@@ -642,9 +642,9 @@ class OdinAgent implements IOdinAgent {
 		String row[] = flags.split(" ");
 		int client_scanning_flag = Integer.parseInt(row[0].trim());
 		int AP_scanning_flag = Integer.parseInt(row[1].trim());
-		int mesurement_beacon_flag = Integer.parseInt(row[2].trim());
-		log.info("READ_HANDLER_SCANING_FLAGS ---- " + " client_scanning_flag:" + client_scanning_flag + " AP_scanning_flag:" + AP_scanning_flag + " mesurement_beacon_flag:" + mesurement_beacon_flag);
-    	if (client_scanning_flag == 1 || AP_scanning_flag == 1 || mesurement_beacon_flag == 1) 
+		int measurement_beacon_flag = Integer.parseInt(row[2].trim());
+		log.info("READ_HANDLER_SCANING_FLAGS ---- " + " client_scanning_flag:" + client_scanning_flag + " AP_scanning_flag:" + AP_scanning_flag + " measurement_beacon_flag:" + measurement_beacon_flag);
+    	if (client_scanning_flag == 1 || AP_scanning_flag == 1 || measurement_beacon_flag == 1) 
 				return (0);
 
 		StringBuilder sb = new StringBuilder();
@@ -704,8 +704,8 @@ class OdinAgent implements IOdinAgent {
 	/**
 	 * Request scanned stations statistics from the agent
 	 * @param agentAddr InetAddress of the agent
-	 * @param #channel to send mesurement beacon
-	 * @param time interval to send mesurement beacon
+	 * @param #channel to send measurement beacon
+	 * @param time interval to send measurement beacon
 	 * @param ssid to scan (e.g odin_init)
 	 * @ If request is accepted return 1, otherwise, return 0
 	 */
@@ -717,24 +717,24 @@ class OdinAgent implements IOdinAgent {
 		String row[] = flags.split(" ");
 		int client_scanning_flag = Integer.parseInt(row[0].trim());
 		int AP_scanning_flag = Integer.parseInt(row[1].trim());
-		int mesurement_beacon_flag = Integer.parseInt(row[2].trim());
-		log.info("READ_HANDLER_SCANING_FLAGS ---- " + " client_scanning_flag:" + client_scanning_flag + " AP_scanning_flag:" + AP_scanning_flag + " mesurement_beacon_flag:" + mesurement_beacon_flag);
-    	if (client_scanning_flag == 1 || AP_scanning_flag == 1 || mesurement_beacon_flag == 1) 
+		int measurement_beacon_flag = Integer.parseInt(row[2].trim());
+		log.info("READ_HANDLER_SCANING_FLAGS ---- " + " client_scanning_flag:" + client_scanning_flag + " AP_scanning_flag:" + AP_scanning_flag + " measurement_beacon_flag:" + measurement_beacon_flag);
+    	if (client_scanning_flag == 1 || AP_scanning_flag == 1 || measurement_beacon_flag == 1) 
 				return (0);
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(ssid);
 		sb.append(" ");
 		sb.append(channel);
-		log.info("Sending WRITE_HANDLER_SEND_MESUREMENT_BEACON " + sb.toString());
-		invokeWriteHandler(WRITE_HANDLER_SEND_MESUREMENT_BEACON, sb.toString());
+		log.info("Sending WRITE_HANDLER_SEND_MEASUREMENT_BEACON " + sb.toString());
+		invokeWriteHandler(WRITE_HANDLER_SEND_MEASUREMENT_BEACON, sb.toString());
 		return (1);
 	}
 
 	
 
 	/**
-	 * Stop sending mesurement beacon from the agent
+	 * Stop sending measurement beacon from the agent
 	 * 
 	 * @param agentAddr InetAddress of the agent
 	 * 
@@ -743,13 +743,13 @@ class OdinAgent implements IOdinAgent {
 	public int stopSendMesurementBeacon () {
 		int client_scanning_flag = 0;
 		int AP_scanning_flag = 0;
-		int mesurement_beacon_flag = 0;
+		int measurement_beacon_flag = 0;
 		StringBuilder sb = new StringBuilder();
 		sb.append(client_scanning_flag);
 		sb.append(" ");
 		sb.append(AP_scanning_flag);
 		sb.append(" ");
-		sb.append(mesurement_beacon_flag);
+		sb.append(measurement_beacon_flag);
 		log.info("Sending WRITE_HANDLER_SCANING_FLAGS " + sb.toString());
 		invokeWriteHandler(WRITE_HANDLER_SCANING_FLAGS, sb.toString());
 		return (1);
