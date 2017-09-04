@@ -8,6 +8,7 @@ import java.util.Set;
 import net.floodlightcontroller.odin.master.OdinClient;
 import net.floodlightcontroller.odin.master.OdinMaster.MobilityParams;
 import net.floodlightcontroller.odin.master.OdinMaster.ScannParams;
+import net.floodlightcontroller.odin.master.OdinMaster.ChannelAssignmentParams;
 import net.floodlightcontroller.util.MACAddress;
 
 interface IOdinMasterToApplicationInterface {
@@ -250,5 +251,13 @@ interface IOdinMasterToApplicationInterface {
 	 * 
 	 */
 	ScannParams getInterferenceParams ();
+	
+	/**
+	 * Return ChannelAssignmentParams for ChannelAssignment App
+	 * 
+	 * @return ChannelAssignmentParams
+	 * 
+	 */
+	ChannelAssignmentParams getChannelAssignmentParams ();
 
 }

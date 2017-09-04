@@ -10,6 +10,7 @@ NETWORKS wi5-demo
 # APPLICATION net.floodlightcontroller.odin.applications.FlowDetectionManager
 # DETECTION 192.168.1.200
 
+####### ShowStatistics
 # APPLICATION net.floodlightcontroller.odin.applications.ShowStatistics
 
 ####### MobilityManager params
@@ -22,11 +23,22 @@ NETWORKS wi5-demo
 # APPLICATION net.floodlightcontroller.odin.applications.ShowScannedStationsStatistics
 # INTERFERENCES 30 30 5 1 ScannedStationsStatistics.txt
 
-
 ####### ShowMatrixOfDistancedBs params
 ####### MATRIX TimeToStart(seg) ReportingPeriod(seg) ScanningInterval(seg) AddedTime(seg) Channel
 # APPLICATION net.floodlightcontroller.odin.applications.ShowMatrixOfDistancedBs
-# MATRIX 30 30 5 1 6
+# MATRIX 30 30 2 1 6
+
+####### ChannelAssignment params
+####### CHANNEL TimeToStart(seg) Period(seg) ScanningInterval(seg) AddedTime(seg) Channel Method
+####### Method = 1 : Wi5, 2 : RANDOM, 3 : LCC  ;
+# APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment
+# CHANNEL 30 30 2 1 6 1
+
+####### Interactive (prompt-based) application, which allows the user to introduce a channel number for each AP throught the keyboard
+# APPLICATION net.floodlightcontroller.odin.applications.ChannelPrompt
+
+####### Continuous loop (10 sec) between the 11 channels of 2.4 GHz. The application moves an AP between all the channels
+# APPLICATION net.floodlightcontroller.odin.applications.ChannelLoop
 
 # Pool-2
 #NAME pool-2
