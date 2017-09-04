@@ -83,6 +83,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	
 	private static ScannParams interference_params; // ShowScannedStationsStatistics parameters
 	
+	private static ChannelAssignmentParams channel_params; // ChannelAssignment parameters
+	
 	// some defaults
 	static private final String DEFAULT_POOL_FILE = "poolfile";
 	static private final String DEFAULT_CLIENT_LIST_FILE = "odin_client_list";
@@ -977,6 +979,17 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		return OdinMaster.interference_params;
 		
 	}
+	
+	/**
+	 * Get ChannelAssignment parameters
+	 * 
+	 * @return ChannelAssignment parameters
+	 */
+	@Override
+	public ChannelAssignmentParams getChannelAssignmentParams (){
+		return OdinMaster.channel_params;
+		
+	}
 
 	//********* from IFloodlightModule **********//
 
@@ -1183,6 +1196,19 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
                         }else{
                             log.info("\t\tFilename not assigned");
                         }
+						br.mark(1000);
+						continue;
+					}
+					
+					if (fields[0].equals("CHANNEL")){							// CHANNEL ASSIGNMENT
+                        channel_params = new ChannelAssignmentParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt(fields[5]),Integer.parseInt(fields[6]));
+						log.info("ChannelAssignment configured:");
+						log.info("\t\tTime_to_start: " + channel_params.time_to_start);
+						log.info("\t\tPeriod: " + channel_params.period);
+						log.info("\t\tScanning_interval: " + channel_params.scanning_interval);
+						log.info("\t\tAdded_time: " + channel_params.added_time);
+						log.info("\t\tChannel: " + channel_params.channel);
+						log.info("\t\tMethod: " + channel_params.method);
 						br.mark(1000);
 						continue;
 					}
@@ -1551,6 +1577,24 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 			this.added_time = added_time*1000;
 			this.channel = channel;
 			this.filename = filename;
+		}
+	}
+	
+	public class ChannelAssignmentParams {
+		public int time_to_start;
+		public int period;
+		public int scanning_interval;
+		public int added_time;
+		public int channel;
+		public int method;
+
+		public ChannelAssignmentParams (int time_to_start, int period, int scanning_interval, int added_time,	int channel, int method) {
+			this.time_to_start = time_to_start*1000;
+			this.period = period*1000;
+			this.scanning_interval = scanning_interval*1000;
+			this.added_time = added_time*1000;
+			this.channel = channel;
+			this.method = method;
 		}
 	}
 
