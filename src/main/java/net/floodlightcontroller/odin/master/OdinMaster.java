@@ -1201,12 +1201,14 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 					}
 					
 					if (fields[0].equals("CHANNEL")){							// CHANNEL ASSIGNMENT
-                        channel_params = new ChannelAssignmentParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt(fields[5]),Integer.parseInt(fields[6]));
+                        channel_params = new ChannelAssignmentParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt(fields[5]),Integer.parseInt(fields[6]),Integer.parseInt(fields[7]), Integer.parseInt(fields[8]));
 						log.info("ChannelAssignment configured:");
 						log.info("\t\tTime_to_start: " + channel_params.time_to_start);
-						log.info("\t\tPeriod: " + channel_params.period);
+						log.info("\t\tPause between scans: " + channel_params.pause);
 						log.info("\t\tScanning_interval: " + channel_params.scanning_interval);
 						log.info("\t\tAdded_time: " + channel_params.added_time);
+						log.info("\t\tNumber of scans: " + channel_params.number_scans);
+						log.info("\t\tIdle time: " + channel_params.idle_time);
 						log.info("\t\tChannel: " + channel_params.channel);
 						log.info("\t\tMethod: " + channel_params.method);
 						br.mark(1000);
@@ -1582,20 +1584,23 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	
 	public class ChannelAssignmentParams {
 		public int time_to_start;
-		public int period;
+		public int pause;
 		public int scanning_interval;
 		public int added_time;
+		public int number_scans;
+		public int idle_time;
 		public int channel;
 		public int method;
 
-		public ChannelAssignmentParams (int time_to_start, int period, int scanning_interval, int added_time,	int channel, int method) {
+		public ChannelAssignmentParams (int time_to_start, int pause, int scanning_interval, int added_time, int number_scans, int idle_time, int channel, int method) {
 			this.time_to_start = time_to_start*1000;
-			this.period = period*1000;
+			this.pause = pause*1000;
 			this.scanning_interval = scanning_interval*1000;
 			this.added_time = added_time*1000;
+			this.number_scans = number_scans;
+			this.idle_time = idle_time;
 			this.channel = channel;
 			this.method = method;
 		}
 	}
-
 }
