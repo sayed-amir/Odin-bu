@@ -14,25 +14,33 @@ NETWORKS wi5-demo
 # APPLICATION net.floodlightcontroller.odin.applications.ShowStatistics
 
 ####### MobilityManager params
-####### MOBILITY TimeToStart(seg) IdleClient(seg) Hysteresis(seg) SignalThreshold(dBm) ScanningTime(seg) NumberOfTriggers TimerResetTriggers(seg)
+####### MOBILITY TimeToStart(sec) IdleClient(sec) Hysteresis(sec) SignalThreshold(dBm) ScanningTime(sec) NumberOfTriggers TimerResetTriggers(sec)
 # APPLICATION net.floodlightcontroller.odin.applications.MobilityManager
 # MOBILITY 30 180 15 -56 1 5 1
 
 ####### ShowScannedStationsStatistics params - Optional filename to save statistics
-####### INTERFERENCES TimeToStart(seg) ReportingPeriod(seg) ScanningInterval(seg) AddedTime(seg) Filename
+####### INTERFERENCES TimeToStart(sec) ReportingPeriod(sec) ScanningInterval(sec) AddedTime(sec) Filename
 # APPLICATION net.floodlightcontroller.odin.applications.ShowScannedStationsStatistics
 # INTERFERENCES 30 30 5 1 ScannedStationsStatistics.txt
 
 ####### ShowMatrixOfDistancedBs params
-####### MATRIX TimeToStart(seg) ReportingPeriod(seg) ScanningInterval(seg) AddedTime(seg) Channel
+####### MATRIX TimeToStart(sec) ReportingPeriod(sec) ScanningInterval(sec) AddedTime(sec) Channel
 # APPLICATION net.floodlightcontroller.odin.applications.ShowMatrixOfDistancedBs
 # MATRIX 30 30 2 1 6
 
 ####### ChannelAssignment params
-####### CHANNEL TimeToStart(seg) Period(seg) ScanningInterval(seg) AddedTime(seg) Channel Method
+#######
+#######Start
+#######  |       Scan      Scan      Scan & Algorithm           Restart
+#######  |         |         |    ...     |                           |
+#######  |_________V_________V____________V___________________________V___
+#######  <--------><--------><-------->...<--------------------------->    t
+#######     Pause     Pause     Pause             IdleTime
+#######
+####### CHANNEL TimeToStart(sec) PauseBetweenScans(sec) ScanningInterval(sec) AddedTime(sec) NumberOfScans IdleTime(sec) Channel Method
 ####### Method = 1 : Wi5, 2 : RANDOM, 3 : LCC  ;
 # APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment
-# CHANNEL 30 30 2 1 6 1
+# CHANNEL 30 30 2 1 3 180 6 1
 
 ####### Interactive (prompt-based) application, which allows the user to introduce a channel number for each AP throught the keyboard
 # APPLICATION net.floodlightcontroller.odin.applications.ChannelPrompt

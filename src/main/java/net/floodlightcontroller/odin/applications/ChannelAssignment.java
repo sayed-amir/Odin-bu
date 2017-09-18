@@ -44,6 +44,10 @@ public class ChannelAssignment extends OdinApplication {
   // Algorithm results
   
   private int[][] channels = null;
+  
+  private long time = 0L; // Compare timestamps in ms
+  
+  private int number_scans = 0;
 
   @Override
   public void run() {
@@ -53,17 +57,19 @@ public class ChannelAssignment extends OdinApplication {
 			Thread.sleep(CHANNEL_PARAMS.time_to_start);
 		} catch (InterruptedException e) {
 	    e.printStackTrace();
-	  }
+    }
+    
+    int numAPs = getAgents().size();
+    double[][] pathLosses = new double[numAPs][numAPs];
 	
 	while (true) {
+	
       try {
-        Thread.sleep(CHANNEL_PARAMS.period);
+      
         matrix = "";
-        
         boolean isValidforChAssign = true;
-		int numAPs = getAgents().size();
-		double[][] pathLosses = new double[numAPs][numAPs];
 		int row = 0, column = 0;
+		time = System.currentTimeMillis();
         		
 		System.out.println("[ChannelAssignment] Matrix of Distance"); 
 		System.out.println("[ChannelAssignment] =================="); 
@@ -121,23 +127,31 @@ public class ChannelAssignment extends OdinApplication {
 						continue;				
 					}		
 					Map<MACAddress, Map<String, String>> vals_rx = getScannedStationsStatsFromAgent(agentAddr,SCANNED_SSID);
-
-					// for each STA scanned by the Agent
+					
+					boolean isMultiple = false; // In case there are multiple replies from agent
+					
 					for (Entry<MACAddress, Map<String, String>> vals_entry_rx: vals_rx.entrySet()) {
-					// NOTE: the clients currently scanned MAY NOT be the same as the clients who have been associated		
+						// NOTE: the clients currently scanned MAY NOT be the same as the clients who have been associated		
 						MACAddress APHwAddr = vals_entry_rx.getKey();
 						avg_dB = vals_entry_rx.getValue().get("avg_signal");
 						System.out.println("\tAP MAC: " + APHwAddr);
 						System.out.println("\tavg signal: " + avg_dB + " dBm");
-						if(avg_dB.length()>6){
-                            matrix = matrix + "\t" + avg_dB.substring(0,6) + " dBm";
-						}else{
-                            matrix = matrix + "\t" + avg_dB + " dBm   ";
-						}
 						
-						boolean isMultiple = false;
 						if(!isMultiple) {
-                            pathLosses[row][column] = Double.parseDouble(avg_dB);
+                            double signal = Math.pow(10.0, Double.parseDouble(avg_dB) / 10.0); // Linear power
+                            double average = 0;
+                            if(number_scans!=0){
+                                average = Math.pow(10.0, (pathLosses[row][column]) / 10.0); // Linear power average;
+                            }
+                            average = average  + ((signal - average)/(number_scans +1)); // Cumulative moving average
+                            pathLosses[row][column] = 10.0*Math.log10(average); //Average power in dBm
+                            avg_dB = String.valueOf(pathLosses[row][column]); // Average string
+                            if(avg_dB.length()>6){
+                                matrix = matrix + "\t" + avg_dB.substring(0,6) + " dBm";
+                            }else{
+                                matrix = matrix + "\t" + avg_dB + " dBm   ";
+                            }
+
                             if(++column >= numAPs) {
                                 column = 0;
                                 row ++;		
@@ -145,10 +159,10 @@ public class ChannelAssignment extends OdinApplication {
                             isMultiple = true;
 						}
 						else
-						{
+						{	// If there are multiple replies, pathLosses is not valid
 							isValidforChAssign = false;
 							System.out.println("[ChannelAssignment] ===================================");
-							System.out.println("[ChannelAssignment] ERROR");
+							System.out.println("[ChannelAssignment] ERROR - Multiple replies from agent " + agentAddr);
 							System.out.println("[ChannelAssignment] ===================================");											
 						}
 					}
@@ -165,18 +179,20 @@ public class ChannelAssignment extends OdinApplication {
 			matrix = matrix + "\n";
 		}
 		//Print matrix
-		System.out.println("[ChannelAssignment] === MATRIX OF DISTANCES (dBs) ===\n");
+		System.out.println("[ChannelAssignment] === MATRIX OF DISTANCES (dBs) ===");
+		System.out.println("[ChannelAssignment]     " + (number_scans+1) + " scans\n");
         System.out.println(matrix);            
 		System.out.println("[ChannelAssignment] =================================");	
+		System.out.println("[ChannelAssignment] Scanning done in: " + (System.currentTimeMillis()-time) + " ms");
 		
-		/*System.out.println("============PATH LOSS START=============");
-		for(int i=0;i<numAPs; i++) {
-            System.out.println(Arrays.toString(pathLosses[i]));
-		}
-		System.out.println("============PATH LOSS END=============");*/
+        if(number_scans < (CHANNEL_PARAMS.number_scans-1)){
+            number_scans++;
+            Thread.sleep(CHANNEL_PARAMS.pause);
+            continue;
+        }
 		
 		// End of loop for iteration, as result, a moving mean of the matrix
-
+        time = System.currentTimeMillis();
 		if(isValidforChAssign) {
 			channels = this.getChannelAssignments(pathLosses, CHANNEL_PARAMS.method); // Method: 1 for WI5, 2 for RANDOM, 3 for LCC
 			int i=0;
@@ -188,7 +204,12 @@ public class ChannelAssignment extends OdinApplication {
 		}else{
 			System.out.println("[ChannelAssignment] Matrix not valid for channel assignment");
 		}
+		System.out.println("[ChannelAssignment] Processing done in: " + (System.currentTimeMillis()-time) + " ms");
 		System.out.println("[ChannelAssignment] =================================");
+		System.out.println("[ChannelAssignment] Idle for " + CHANNEL_PARAMS.idle_time + " seconds\n");
+		number_scans = 0;
+		pathLosses = new double[numAPs][numAPs];
+		Thread.sleep(CHANNEL_PARAMS.idle_time*1000);
 	  } catch (InterruptedException e) {
 	      e.printStackTrace();
       }
