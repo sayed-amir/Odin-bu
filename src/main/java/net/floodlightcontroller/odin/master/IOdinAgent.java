@@ -244,6 +244,14 @@ public interface IOdinAgent {
 	public int stopSendMesurementBeacon ();
 	
 	/**
+	 * Get TxPower
+	 * 
+	 * @return TxPower in dBm
+	 * 
+	 */
+	public int getTxPower();
+	
+	/**
 	 * Returns the Detector IP address added in poolfile
 	 * 
 	 * @return Detector InetAddress

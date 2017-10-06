@@ -991,6 +991,19 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		
 	}
 
+	/**
+	 * Get TxPower from and specific agent (AP)
+	 * 
+	 * @param Pool
+	 * @param Agent InetAddress
+	 * @return TxPower in dBm
+	 */
+	@Override
+	public int getTxPowerFromAgent (String pool, InetAddress agentAddr) {
+		//log.info("Getting TxPower OdinMaster");
+		return agentManager.getAgent(agentAddr).getTxPower();
+	}
+
 	//********* from IFloodlightModule **********//
 
 	@Override

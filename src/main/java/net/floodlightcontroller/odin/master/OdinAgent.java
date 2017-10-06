@@ -51,6 +51,7 @@ class OdinAgent implements IOdinAgent {
 	private long lastHeard;
 	private int channel;
 	private int lastScan;
+	private int txpower;
 
 	private ConcurrentSkipListSet<OdinClient> clientList = new ConcurrentSkipListSet<OdinClient>();
 
@@ -63,6 +64,7 @@ class OdinAgent implements IOdinAgent {
 	private static final String READ_HANDLER_SCAN_CLIENT = "scan_client";
 	private static final String READ_HANDLER_SCAN_APS = "scan_APs";
 	private static final String READ_HANDLER_SCANING_FLAGS = "scanning_flags";
+	private static final String READ_HANDLER_TXPOWER = "txpower";
 	private static final String WRITE_HANDLER_ADD_VAP = "add_vap";
 	private static final String WRITE_HANDLER_SET_VAP = "set_vap";
 	private static final String WRITE_HANDLER_REMOVE_VAP = "remove_vap";
@@ -753,6 +755,23 @@ class OdinAgent implements IOdinAgent {
 		log.info("Sending WRITE_HANDLER_SCANING_FLAGS " + sb.toString());
 		invokeWriteHandler(WRITE_HANDLER_SCANING_FLAGS, sb.toString());
 		return (1);
+	}
+	
+	
+	/**
+	 * Get TxPower from the agent
+	 * 
+	 * @param agentAddr InetAddress of the agent
+	 * 
+	 */
+	@Override
+	public int getTxPower() {
+		int txpower = 0;
+		String handler = invokeReadHandler(READ_HANDLER_TXPOWER);
+		txpower = Integer.parseInt(handler.trim());
+		if(txpower != this.txpower)
+			this.txpower = txpower;
+		return this.txpower;
 	}
 
 	/**

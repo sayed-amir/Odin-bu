@@ -259,5 +259,14 @@ interface IOdinMasterToApplicationInterface {
 	 * 
 	 */
 	ChannelAssignmentParams getChannelAssignmentParams ();
+	
+	/**
+	 * Get txpower from and specific agent (AP)
+	 * 
+	 * @param Pool
+	 * @param Agent InetAddress
+	 * @return TxPower in dBm
+	 */
+	int getTxPowerFromAgent (String pool, InetAddress agentAddr);
 
 }

@@ -321,4 +321,14 @@ public abstract class OdinApplication implements Runnable {
 	protected final ChannelAssignmentParams getChannelAssignmentParams (){
 		return odinApplicationInterfaceToMaster.getChannelAssignmentParams();
 	}
+	
+	/**
+	 * Get TxPower from and specific agent (AP)
+	 * 
+	 * @param Agent InetAddress
+	 * @return TxPower in dBm
+	 */
+	protected final int getTxPowerFromAgent (InetAddress agentAddr){
+		return odinApplicationInterfaceToMaster.getTxPowerFromAgent(pool, agentAddr); 
+	}
 }
