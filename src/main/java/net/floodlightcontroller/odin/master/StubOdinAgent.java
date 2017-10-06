@@ -29,6 +29,7 @@ class StubOdinAgent implements IOdinAgent {
 	private int freq;
 	private int chan;
 	private int lastScan;
+	private int txpower;
 	
 	@Override
 	public void addClientLvap(OdinClient oc) {
@@ -158,6 +159,10 @@ class StubOdinAgent implements IOdinAgent {
 	
 	public String setDetectorIpAddress(){
 		return null;	
+	}
+	
+	public int getTxPower() {
+		return txpower;
 	}
 	
 

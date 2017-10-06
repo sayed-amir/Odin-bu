@@ -48,6 +48,8 @@ public class ChannelAssignment extends OdinApplication {
   private long time = 0L; // Compare timestamps in ms
   
   private int number_scans = 0;
+  
+  private int[] txpowerAPs = null;
 
   @Override
   public void run() {
@@ -61,6 +63,19 @@ public class ChannelAssignment extends OdinApplication {
     
     int numAPs = getAgents().size();
     double[][] pathLosses = new double[numAPs][numAPs];
+    
+    txpowerAPs = new int[numAPs];
+    
+    int j=0;
+    
+    // Get TxPower from Agents
+    for (InetAddress AgentAddr: getAgents()) {
+    
+        System.out.println("[ChannelAssignment] Agent:" + AgentAddr + " TxPower: " + getTxPowerFromAgent(AgentAddr) + " dBm");
+        txpowerAPs[j] = getTxPowerFromAgent(AgentAddr);
+        j++;
+        
+    }
 	
 	while (true) {
 	
@@ -134,22 +149,25 @@ public class ChannelAssignment extends OdinApplication {
 						// NOTE: the clients currently scanned MAY NOT be the same as the clients who have been associated		
 						MACAddress APHwAddr = vals_entry_rx.getKey();
 						avg_dB = vals_entry_rx.getValue().get("avg_signal");
+						double losses_dB = txpowerAPs[row] - Double.parseDouble(avg_dB);
 						System.out.println("\tAP MAC: " + APHwAddr);
+						System.out.println("\tAP TxPower: " + txpowerAPs[row] + " dBm");
 						System.out.println("\tavg signal: " + avg_dB + " dBm");
+						System.out.println("\tpathloss: " + losses_dB + " dB");
 						
 						if(!isMultiple) {
-                            double signal = Math.pow(10.0, Double.parseDouble(avg_dB) / 10.0); // Linear power
+                            double losses = Math.pow(10.0, losses_dB / 10.0); // Linear power
                             double average = 0;
                             if(number_scans!=0){
                                 average = Math.pow(10.0, (pathLosses[row][column]) / 10.0); // Linear power average;
                             }
-                            average = average  + ((signal - average)/(number_scans +1)); // Cumulative moving average
+                            average = average  + ((losses - average)/(number_scans +1)); // Cumulative moving average
                             pathLosses[row][column] = 10.0*Math.log10(average); //Average power in dBm
                             avg_dB = String.valueOf(pathLosses[row][column]); // Average string
                             if(avg_dB.length()>6){
-                                matrix = matrix + "\t" + avg_dB.substring(0,6) + " dBm";
+                                matrix = matrix + "\t" + avg_dB.substring(0,6) + " dB";
                             }else{
-                                matrix = matrix + "\t" + avg_dB + " dBm   ";
+                                matrix = matrix + "\t" + avg_dB + " dB   ";
                             }
 
                             if(++column >= numAPs) {
@@ -179,7 +197,7 @@ public class ChannelAssignment extends OdinApplication {
 			matrix = matrix + "\n";
 		}
 		//Print matrix
-		System.out.println("[ChannelAssignment] === MATRIX OF DISTANCES (dBs) ===");
+		System.out.println("[ChannelAssignment] === MATRIX OF PATHLOSS (dB) ===");
 		System.out.println("[ChannelAssignment]     " + (number_scans+1) + " scans\n");
         System.out.println(matrix);            
 		System.out.println("[ChannelAssignment] =================================");	
