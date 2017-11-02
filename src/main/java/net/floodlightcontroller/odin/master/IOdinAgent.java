@@ -258,5 +258,11 @@ public interface IOdinAgent {
 	 */
 	public String setDetectorIpAddress ();
 	
+	/**
+	 * Retreive scanned wi5 stations rssi from the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @return Key-Value entries of each recorded rssi for each wi5 station 
+	 */
+	public String getScannedStaRssi ();	
 		
 }

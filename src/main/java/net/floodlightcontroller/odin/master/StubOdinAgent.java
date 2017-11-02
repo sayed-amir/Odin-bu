@@ -165,6 +165,10 @@ class StubOdinAgent implements IOdinAgent {
 		return txpower;
 	}
 	
+	@Override
+	public String getScannedStaRssi (){
+		return null;
+	}
 
 
 }

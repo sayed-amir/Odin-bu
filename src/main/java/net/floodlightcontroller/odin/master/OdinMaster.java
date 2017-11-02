@@ -85,6 +85,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	
 	private static ChannelAssignmentParams channel_params; // ChannelAssignment parameters
 	
+	private static SmartApSelectionParams smartap_params; // SmartApSelection parameters
+	
 	// some defaults
 	static private final String DEFAULT_POOL_FILE = "poolfile";
 	static private final String DEFAULT_CLIENT_LIST_FILE = "odin_client_list";
@@ -990,7 +992,18 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		return OdinMaster.channel_params;
 		
 	}
-
+	
+	/**
+	 * Get SmartApSelection parameters
+	 * 
+	 * @return SmartApSelection parameters
+	 */
+	@Override
+	public SmartApSelectionParams getSmartApSelectionParams (){
+		return OdinMaster.smartap_params;
+		
+	}
+	
 	/**
 	 * Get TxPower from and specific agent (AP)
 	 * 
@@ -1002,6 +1015,16 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	public int getTxPowerFromAgent (String pool, InetAddress agentAddr) {
 		//log.info("Getting TxPower OdinMaster");
 		return agentManager.getAgent(agentAddr).getTxPower();
+	}
+	
+	/**
+	 * Retreive scanned wi5 stations rssi from the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @return Key-Value entries of each recorded rssi for each wi5 station 
+	 */
+	@Override
+	public String getScannedStaRssiFromAgent (String pool, InetAddress agentAddr) {
+		return agentManager.getAgent(agentAddr).getScannedStaRssi();
 	}
 
 	//********* from IFloodlightModule **********//
@@ -1224,6 +1247,20 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 						log.info("\t\tIdle time: " + channel_params.idle_time);
 						log.info("\t\tChannel: " + channel_params.channel);
 						log.info("\t\tMethod: " + channel_params.method);
+						br.mark(1000);
+						continue;
+					}
+					
+					if (fields[0].equals("SMARTAPSELECTION")){							// SMART AP SELECTION
+                        smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]));
+						log.info("SmartApSelection configured:");
+						log.info("\t\tTime_to_start: " + smartap_params.time_to_start);
+						log.info("\t\tScanning_interval: " + smartap_params.scanning_interval);
+						log.info("\t\tAdded_time: " + smartap_params.added_time);
+						log.info("\t\tSignal_threshold: " + smartap_params.signal_threshold);
+						log.info("\t\tHysteresis_threshold: " + smartap_params.hysteresis_threshold);
+						log.info("\t\tPrevius_data_weight (alpha): " + smartap_params.weight);
+						log.info("\t\tPause between scans: " + smartap_params.pause);
 						br.mark(1000);
 						continue;
 					}
@@ -1616,4 +1653,25 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 			this.method = method;
 		}
 	}
+	
+	public class SmartApSelectionParams {
+		public int time_to_start;
+		public int scanning_interval;
+		public int added_time;
+		public Double signal_threshold;
+		public long hysteresis_threshold;
+		public Double weight;
+		public int pause;
+
+		public SmartApSelectionParams (int time_to_start, int scanning_interval, int added_time, Double signal_threshold, long hysteresis_threshold, Double weight, int pause) {
+			this.time_to_start = time_to_start*1000;
+			this.scanning_interval = scanning_interval;
+			this.added_time = added_time;
+			this.signal_threshold = signal_threshold;
+			this.hysteresis_threshold = hysteresis_threshold;
+			this.weight = weight;
+			this.pause = pause*1000;
+		}
+	}
+
 }
