@@ -9,6 +9,7 @@ import net.floodlightcontroller.odin.master.OdinClient;
 import net.floodlightcontroller.odin.master.OdinMaster.MobilityParams;
 import net.floodlightcontroller.odin.master.OdinMaster.ScannParams;
 import net.floodlightcontroller.odin.master.OdinMaster.ChannelAssignmentParams;
+import net.floodlightcontroller.odin.master.OdinMaster.SmartApSelectionParams;
 import net.floodlightcontroller.util.MACAddress;
 
 interface IOdinMasterToApplicationInterface {
@@ -261,6 +262,14 @@ interface IOdinMasterToApplicationInterface {
 	ChannelAssignmentParams getChannelAssignmentParams ();
 	
 	/**
+	 * Return SmartApSelectionParams for SmartApSelection App
+	 * 
+	 * @return SmartApSelectionParams
+	 * 
+	 */
+	SmartApSelectionParams getSmartApSelectionParams ();
+	
+	/**
 	 * Get txpower from and specific agent (AP)
 	 * 
 	 * @param Pool
@@ -268,5 +277,12 @@ interface IOdinMasterToApplicationInterface {
 	 * @return TxPower in dBm
 	 */
 	int getTxPowerFromAgent (String pool, InetAddress agentAddr);
+	
+	/**
+	 * Retreive scanned wi5 stations rssi from the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @return Key-Value entries of each recorded rssi for each wi5 station 
+	 */
+	String getScannedStaRssiFromAgent (String pool, InetAddress agentAddr);
 
 }

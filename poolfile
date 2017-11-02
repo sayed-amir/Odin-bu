@@ -48,6 +48,11 @@ NETWORKS wi5-demo
 ####### Continuous loop (10 sec) between the 11 channels of 2.4 GHz. The application moves an AP between all the channels
 # APPLICATION net.floodlightcontroller.odin.applications.ChannelLoop
 
+####### Smart Ap Selection params
+####### SMARTAPSELECTION TimeToStart(sec) ScanningInterval(msec) AddedTime(msec) SignalThreshold(dBm) Hysteresis(sec) Alpha(0-1) Pause(sec)
+# APPLICATION net.floodlightcontroller.odin.applications.SmartApSelection
+# SMARTAPSELECTION 30 200 0 -56 4 0.2 0
+
 # Pool-2
 #NAME pool-2
 #NODES 192.168.1.5 192.168.1.6
