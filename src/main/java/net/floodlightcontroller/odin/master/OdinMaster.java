@@ -1237,7 +1237,11 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 					}
 					
 					if (fields[0].equals("CHANNEL")){							// CHANNEL ASSIGNMENT
-                        channel_params = new ChannelAssignmentParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt(fields[5]),Integer.parseInt(fields[6]),Integer.parseInt(fields[7]), Integer.parseInt(fields[8]));
+					    if(fields.length==11){// Filename added in poolfile
+                          channel_params = new ChannelAssignmentParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt(fields[5]),Integer.parseInt(fields[6]),Integer.parseInt(fields[7]), Integer.parseInt(fields[8]), fields[9], fields[10]);
+                        }else{
+                          channel_params = new ChannelAssignmentParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Integer.parseInt(fields[4]),Integer.parseInt(fields[5]),Integer.parseInt(fields[6]),Integer.parseInt(fields[7]), Integer.parseInt(fields[8]), fields[9], "");
+                        }
 						log.info("ChannelAssignment configured:");
 						log.info("\t\tTime_to_start: " + channel_params.time_to_start);
 						log.info("\t\tPause between scans: " + channel_params.pause);
@@ -1247,6 +1251,12 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 						log.info("\t\tIdle time: " + channel_params.idle_time);
 						log.info("\t\tChannel: " + channel_params.channel);
 						log.info("\t\tMethod: " + channel_params.method);
+						log.info("\t\tMode: " + channel_params.mode);
+						if(channel_params.filename.length()>0){
+                            log.info("\t\tFilename: " + channel_params.filename);
+                        }else{
+                            log.info("\t\tFilename not assigned");
+                        }
 						br.mark(1000);
 						continue;
 					}
@@ -1641,8 +1651,10 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		public int idle_time;
 		public int channel;
 		public int method;
+		public String mode;
+		public String filename;
 
-		public ChannelAssignmentParams (int time_to_start, int pause, int scanning_interval, int added_time, int number_scans, int idle_time, int channel, int method) {
+		public ChannelAssignmentParams (int time_to_start, int pause, int scanning_interval, int added_time, int number_scans, int idle_time, int channel, int method, String mode, String filename) {
 			this.time_to_start = time_to_start*1000;
 			this.pause = pause*1000;
 			this.scanning_interval = scanning_interval*1000;
@@ -1651,6 +1663,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 			this.idle_time = idle_time;
 			this.channel = channel;
 			this.method = method;
+			this.mode = mode;
+			this.filename = filename;
 		}
 	}
 	

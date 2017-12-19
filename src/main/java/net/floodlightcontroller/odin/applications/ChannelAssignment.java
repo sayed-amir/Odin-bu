@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Scanner;
 import java.io.*;
 
 import net.floodlightcontroller.odin.master.OdinApplication;
@@ -19,6 +20,7 @@ import org.apache.commons.io.output.TeeOutputStream;
 
 import com.mathworks.toolbox.javabuilder.*;
 import wi5.*;
+import java.lang.*;
 
 public class ChannelAssignment extends OdinApplication {
 
@@ -50,11 +52,22 @@ public class ChannelAssignment extends OdinApplication {
   private int number_scans = 0;
   
   private int[] txpowerAPs = null;
+  
+  private int[] channelAPs = null;
+  
+  private double[] coefII = {0.65, 0.8, 0.6, 0.4, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // To calculate the trigger
+  
+  private int userInt;
+  
+  private Scanner in = new Scanner(System.in);
+  
+  HashSet<OdinClient> clients;
 
   @Override
   public void run() {
 	
 	this.CHANNEL_PARAMS = getChannelAssignmentParams();
+	String operationMode = CHANNEL_PARAMS.mode;
     try {
 			Thread.sleep(CHANNEL_PARAMS.time_to_start);
 		} catch (InterruptedException e) {
@@ -63,27 +76,85 @@ public class ChannelAssignment extends OdinApplication {
     
     int numAPs = getAgents().size();
     double[][] pathLosses = new double[numAPs][numAPs];
-    
+    double[][] matrixII = new double[numAPs][numAPs];
+	
     txpowerAPs = new int[numAPs];
+    channelAPs = new int[numAPs];
     
     int j=0;
     
-    // Get TxPower from Agents
-    for (InetAddress AgentAddr: getAgents()) {
-    
-        System.out.println("[ChannelAssignment] Agent:" + AgentAddr + " TxPower: " + getTxPowerFromAgent(AgentAddr) + " dBm");
-        txpowerAPs[j] = getTxPowerFromAgent(AgentAddr);
-        j++;
+    // Write on file integration
+    PrintStream stdout = System.out; // To enable return to console
+    FileOutputStream fos = null;
+    PrintStream ps = null;
         
+    if(CHANNEL_PARAMS.filename.length()>0){
+      File f = new File(CHANNEL_PARAMS.filename); 
+
+      try {
+        fos = new FileOutputStream(f, true); // If the file exists, it will append data to the eof
+        //we will want to print in standard "System.out" and in "file"
+        TeeOutputStream myOut=new TeeOutputStream(stdout, fos);
+        ps = new PrintStream(myOut, true); //true - auto-flush after println
+        System.setOut(ps); // Both outputs enabled
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
 	
 	while (true) {
 	
       try {
-      
+        
         matrix = "";
         boolean isValidforChAssign = true;
 		int row = 0, column = 0;
+		if(operationMode.equals("manual")){
+          promptEnterKey();
+          System.out.println("[ChannelAssignment] ======== Agents information ========");
+        }
+		
+        // Get TxPower and channels from Agents and change channel if needed
+        for (InetAddress AgentAddr: getAgents()) {
+            channelAPs[j] = getChannelFromAgent(AgentAddr);
+            txpowerAPs[j] = getTxPowerFromAgent(AgentAddr);
+            if(operationMode.equals("manual")){
+              System.out.println("[ChannelAssignment] [ " + j + " ]");
+              System.out.println("[ChannelAssignment] Agent:" + AgentAddr);
+              System.out.println("[ChannelAssignment]\tCurrent channel: " + channelAPs[j]);
+              System.out.println("[ChannelAssignment]\tTxPower: " + txpowerAPs[j] + " dBm");
+              System.out.print("[ChannelAssignment] Select channel for AP " + AgentAddr + "[1-11]:");
+			  userInt = in.nextInt(); // FIXME assume user will use 1-11
+			  System.out.println("[ChannelAssignment] ===================================");	
+			  setChannelToAgent(AgentAddr,userInt);
+			  channelAPs[j] = userInt;
+			}
+            j++;
+        }
+        
+        // Associate STAs to specific Agent
+        clients = new HashSet<OdinClient>(getClients());
+        if(clients.size()>0){
+          if(operationMode.equals("manual")){
+            System.out.println("\n[ChannelAssignment] ======== Clients information ========");
+            for (OdinClient oc: clients) {
+              MACAddress eth = oc.getMacAddress(); // client MAC
+              InetAddress clientAddr = oc.getIpAddress();
+              InetAddress agentAddr = oc.getLvap().getAgent().getIpAddress();
+              System.out.println("[ChannelAssignment] Client " + clientAddr + " in agent " + agentAddr);
+              System.out.print("[ChannelAssignment] Select Agent for Client " + clientAddr + "[0-"+(j-1)+"]:");
+              userInt = in.nextInt();// FIXME assume user will use 0-j-1
+              System.out.println("[ChannelAssignment] ===================================");
+              InetAddress[] agentsArray = getAgents().toArray(new InetAddress[0]);
+              handoffClientToAp(eth, agentsArray[userInt]);
+            }
+            promptEnterKey();
+          }
+        }
+        j = 0;
+        
+        
+        
 		time = System.currentTimeMillis();
         		
 		System.out.println("[ChannelAssignment] Matrix of Distance"); 
@@ -101,15 +172,15 @@ public class ChannelAssignment extends OdinApplication {
 			// For each Agent
 			System.out.println("[ChannelAssignment] Request for scanning during the interval of  " + CHANNEL_PARAMS.scanning_interval + " ms in SSID " + SCANNED_SSID);	
 			for (InetAddress agentAddr: getAgents()) {
+			
 	  			if (agentAddr != beaconAgentAddr) {
-					System.out.println("[ChannelAssignment] Agent: " + agentAddr);	
- 				
+					System.out.println("[ChannelAssignment] Agent listening: " + agentAddr);	
 					// Request distances
 					result = requestScannedStationsStatsFromAgent(agentAddr, CHANNEL_PARAMS.channel, SCANNED_SSID);		
 					scanningAgents.put(agentAddr, result);
 				}
 			}					
-				
+	
 			// Request to send measurement beacon
 			if (requestSendMesurementBeaconFromAgent(beaconAgentAddr, CHANNEL_PARAMS.channel, SCANNED_SSID) == 0) {
 					System.out.println("[ChannelAssignment] Agent BUSY during measurement beacon operation");
@@ -142,6 +213,7 @@ public class ChannelAssignment extends OdinApplication {
 						continue;				
 					}		
 					Map<MACAddress, Map<String, String>> vals_rx = getScannedStationsStatsFromAgent(agentAddr,SCANNED_SSID);
+					System.out.println("[ChannelAssignment] Timestamp - Scan: " + System.currentTimeMillis() + " ms since epoch");
 					
 					boolean isMultiple = false; // In case there are multiple replies from agent
 					
@@ -154,6 +226,9 @@ public class ChannelAssignment extends OdinApplication {
 						System.out.println("\tAP TxPower: " + txpowerAPs[row] + " dBm");
 						System.out.println("\tavg signal: " + avg_dB + " dBm");
 						System.out.println("\tpathloss: " + losses_dB + " dB");
+						System.out.println("\tfrom channel: " + channelAPs[row] + " to channel: "+channelAPs[column]);
+						int channelDistance = Math.abs(channelAPs[row]-channelAPs[column]);
+						System.out.println("\tII coef: " + coefII[channelDistance]);
 						
 						if(!isMultiple) {
                             double losses = Math.pow(10.0, losses_dB / 10.0); // Linear power
@@ -163,7 +238,15 @@ public class ChannelAssignment extends OdinApplication {
                             }
                             average = average  + ((losses - average)/(number_scans +1)); // Cumulative moving average
                             pathLosses[row][column] = 10.0*Math.log10(average); //Average power in dBm
-                            avg_dB = String.valueOf(pathLosses[row][column]); // Average string
+							double avg_signal_dB_II = txpowerAPs[row] - pathLosses[row][column];
+							//System.out.println("\tavg_signal_II: " + avg_signal_dB_II);
+							double avg_signal_II = Math.pow(10.0, avg_signal_dB_II / 10.0);
+							if(coefII[channelDistance]==0){
+                                matrixII[row][column] = 0;
+							}else{
+                                matrixII[row][column] = 10.0*Math.log10(coefII[channelDistance]*avg_signal_II);//II in dB
+							}
+							avg_dB = String.valueOf(pathLosses[row][column]); // Average string
                             if(avg_dB.length()>6){
                                 matrix = matrix + "\t" + avg_dB.substring(0,6) + " dB";
                             }else{
@@ -188,6 +271,7 @@ public class ChannelAssignment extends OdinApplication {
 				}else{
                     matrix = matrix + "\t----------";
                     pathLosses[row][column] = 0;
+                    matrixII[row][column] = 0;
                     if(++column >= numAPs) {
                             column = 0;
                             row ++;		
@@ -201,8 +285,17 @@ public class ChannelAssignment extends OdinApplication {
 		System.out.println("[ChannelAssignment]     " + (number_scans+1) + " scans\n");
         System.out.println(matrix);            
 		System.out.println("[ChannelAssignment] =================================");	
-		System.out.println("[ChannelAssignment] Scanning done in: " + (System.currentTimeMillis()-time) + " ms");
-		
+		System.out.println("[ChannelAssignment] Scanning done in: " + (System.currentTimeMillis()-time) + " ms\n");
+		System.out.println("[ChannelAssignment] =================================");
+		System.out.println("[ChannelAssignment] = MATRIX OF INTERFERENCE IMPACT =\n");
+		double sumII = 0;
+		for (double[] arrayCoefII: matrixII) {
+            System.out.println(Arrays.toString(arrayCoefII));
+            for (double coef_II: arrayCoefII) {
+                sumII += coef_II;
+            }
+        }
+        System.out.println("[ChannelAssignment] =================================\n");
         if(number_scans < (CHANNEL_PARAMS.number_scans-1)){
             number_scans++;
             Thread.sleep(CHANNEL_PARAMS.pause);
@@ -211,8 +304,21 @@ public class ChannelAssignment extends OdinApplication {
 		
 		// End of loop for iteration, as result, a moving mean of the matrix
         time = System.currentTimeMillis();
+        if(sumII==0){   
+            System.out.println("[ChannelAssignment] Interference Impact: " + sumII);
+            System.out.println("[ChannelAssignment] ChannelAssignment not necessary");
+            System.out.println("[ChannelAssignment] =================================");
+            System.out.println("[ChannelAssignment] Idle for " + CHANNEL_PARAMS.idle_time + " seconds\n");
+            number_scans = 0;
+            pathLosses = new double[numAPs][numAPs];
+            matrixII = new double[numAPs][numAPs];
+            Thread.sleep(CHANNEL_PARAMS.idle_time*1000);
+            continue;
+        }
 		if(isValidforChAssign) {
+            System.out.println("[ChannelAssignment] Interference Impact: " + sumII);
 			channels = this.getChannelAssignments(pathLosses, CHANNEL_PARAMS.method); // Method: 1 for WI5, 2 for RANDOM, 3 for LCC
+            System.out.println("[ChannelAssignment] Timestamp - Algorithm: " + System.currentTimeMillis() + " ms since epoch");
 			int i=0;
 			for (InetAddress agentAddr: getAgents()) {
 				System.out.println("[ChannelAssignment] Setting AP " + agentAddr + " to channel: " + channels[0][i]);
@@ -227,6 +333,7 @@ public class ChannelAssignment extends OdinApplication {
 		System.out.println("[ChannelAssignment] Idle for " + CHANNEL_PARAMS.idle_time + " seconds\n");
 		number_scans = 0;
 		pathLosses = new double[numAPs][numAPs];
+		matrixII = new double[numAPs][numAPs];
 		Thread.sleep(CHANNEL_PARAMS.idle_time*1000);
 	  } catch (InterruptedException e) {
 	      e.printStackTrace();
@@ -280,4 +387,9 @@ public class ChannelAssignment extends OdinApplication {
             return channels;
 		}
 	}
+	public void promptEnterKey(){ // Function to ask for a key
+      System.out.println("Press \"ENTER\" to continue...");
+      Scanner scanner = new Scanner(System.in);
+      scanner.nextLine();
+    }
 } 
