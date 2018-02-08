@@ -13,6 +13,9 @@ NETWORKS wi5-demo
 ####### ShowStatistics
 # APPLICATION net.floodlightcontroller.odin.applications.ShowStatistics
 
+####### SimpleLoadBalancer
+# APPLICATION net.floodlightcontroller.odin.applications.SimpleLoadBalancer
+
 ####### MobilityManager params
 ####### MOBILITY TimeToStart(sec) IdleClient(sec) Hysteresis(sec) SignalThreshold(dBm) ScanningTime(sec) NumberOfTriggers TimerResetTriggers(sec)
 # APPLICATION net.floodlightcontroller.odin.applications.MobilityManager
@@ -50,9 +53,10 @@ NETWORKS wi5-demo
 # APPLICATION net.floodlightcontroller.odin.applications.ChannelLoop
 
 ####### Smart Ap Selection params
-####### SMARTAPSELECTION TimeToStart(sec) ScanningInterval(msec) AddedTime(msec) SignalThreshold(dBm) Hysteresis(sec) Alpha(0-1) Pause(sec)
+####### SMARTAPSELECTION TimeToStart(sec) ScanningInterval(msec) AddedTime(msec) SignalThreshold(dBm) Hysteresis(sec) Alpha(0-1) Pause(sec) Mode Filename
+####### Mode = RSSI; It will allow change between RSSI and FitnessFactor algorithm
 # APPLICATION net.floodlightcontroller.odin.applications.SmartApSelection
-# SMARTAPSELECTION 30 200 0 -56 4 0.2 0
+# SMARTAPSELECTION 50 200 0 -56 4 0.2 0 RSSI SmartApSelectionLog.txt
 
 # Pool-2
 #NAME pool-2

@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Arrays;
+import java.io.File;
+import java.io.PrintStream;
 
 import net.floodlightcontroller.odin.master.OdinApplication;
 import net.floodlightcontroller.odin.master.OdinClient;
@@ -66,9 +68,33 @@ public class SmartApSelection extends OdinApplication {
 	  e.printStackTrace();
     }
     
+    // Write on file integration
+    PrintStream ps = null;
+		
+	if(SMARTAP_PARAMS.filename.length()>0){
+        File f = new File(SMARTAP_PARAMS.filename);
+        try {
+			ps = new PrintStream(f);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
     num_agents = getAgents().size(); // Number of agents
     channels = new int[num_agents]; // Array to store the channels in use
     int[] channelsAux = new int[num_agents];
+    
+    ps.println("[SmartAPSelection] Log file " + SMARTAP_PARAMS.filename); // Log in file
+    ps.println("[SmartAPSelection] Parameters:");
+    ps.println("\tTime_to_start: " + SMARTAP_PARAMS.time_to_start);
+	ps.println("\tScanning_interval: " + SMARTAP_PARAMS.scanning_interval);
+	ps.println("\tAdded_time: " + SMARTAP_PARAMS.added_time);
+	ps.println("\tSignal_threshold: " + SMARTAP_PARAMS.signal_threshold);
+	ps.println("\tHysteresis_threshold: " + SMARTAP_PARAMS.hysteresis_threshold);
+	ps.println("\tPrevius_data_weight (alpha): " + SMARTAP_PARAMS.weight);
+	ps.println("\tPause between scans: " + SMARTAP_PARAMS.pause);
+	ps.println("\tMode: " + SMARTAP_PARAMS.mode);
+	ps.println("\tFilename: " + SMARTAP_PARAMS.filename);
     
     // Get channels from APs, assuming there is no change in all operation, if already in array->0
     for (InetAddress agentAddr: getAgents()) {
@@ -83,8 +109,11 @@ public class SmartApSelection extends OdinApplication {
 		//System.out.println("[SmartAPSelection] Chann added "+chann);
 	  }
       System.out.println("[SmartAPSelection] AP " + agentAddr + " in channel: " + chann);
+      ps.println("[SmartAPSelection] AP " + agentAddr + " in channel: " + chann); // Log in file
       num_channels++;
     }
+    ps.println("[SmartAPSelection]");
+    ps.flush();
     
     vals_rx = new String[num_channels][num_agents]; // Matrix to store the results from agents
     Map<MACAddress, Double[]> rssiData = new HashMap<MACAddress, Double[]> (); // Map to store RSSI for each STA in all APs
@@ -240,6 +269,8 @@ public class SmartApSelection extends OdinApplication {
         // Now comparation and handoff if it's needed
         time = System.currentTimeMillis();
         
+        ps.println(time + " ms"); // Log in file
+        
         for (OdinClient oc: clients) {
 		
 		  client_index = 0;
@@ -263,6 +294,7 @@ public class SmartApSelection extends OdinApplication {
             continue;
           
           System.out.println("\033[K\r[SmartAPSelection] Client " + clientAddr + " in agent " + agentAddr);
+          ps.println("\tClient " + clientAddr + " in agent " + agentAddr); // Log in file
           
           client_dBm = rssiData.get(eth);
           
@@ -291,14 +323,17 @@ public class SmartApSelection extends OdinApplication {
               
                 currentRssi = client_dBm[ind_aux];
                 System.out.print("[\033[48;5;29m" + client_dBm[ind_aux] + "\033[00m]"); // Dark Green
+                ps.println("\t\t[Associated] Rssi in agent " + agents[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
               
               }else{
                 if(ind_aux==client_index){ // Max
                 
                   System.out.print("[\033[48;5;88m" + client_dBm[ind_aux] + "\033[00m]"); // Dark red
+                  ps.println("\t\t[BetterAP] Rssi in agent " + agents[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
                 
                 }else{
                   System.out.print("["+ client_dBm[ind_aux] +"]"); //
+                  ps.println("\t\t[WorseAP] Rssi in agent " + agents[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
                 }
               }
             
@@ -320,21 +355,26 @@ public class SmartApSelection extends OdinApplication {
                   handoffDate.put(eth,Long.valueOf(System.currentTimeMillis()));
                   System.out.println(" - Handoff >--->--->---> "+agents[client_index]);
                   
+				  ps.println("\t\t[Action] Handoff to agent: " + agents[client_index]); // Log in file
 				  
                 }else{
                   System.out.println(" - No Handoff: Hysteresis time not reached");
+                  ps.println("\t\t[No Action] No Handoff: Hysteresis time not reached"); // Log in file
                 }
               }else{
                 System.out.println(" - No Handoff: Rssi Threshold not reached");
+                ps.println("\t\t[No Action] No Handoff: Rssi Threshold not reached"); // Log in file
               }
             }else{
               System.out.println(""); // Best AP already
+              ps.println("\t\t[No Action] There is no better Rssi heard"); // Log in file
             }
             
           }else{
             System.out.println("\033[K\r[SmartAPSelection] No data received");
           }
 		}
+		ps.flush();
 		System.out.println("\033[K\r[SmartAPSelection] Assignation done in: " + (System.currentTimeMillis()-time) + " ms");
         System.out.println("\033[K\r[SmartAPSelection] ====================");
         System.out.println("\033[K\r");

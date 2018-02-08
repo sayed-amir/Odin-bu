@@ -1262,7 +1262,11 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 					}
 					
 					if (fields[0].equals("SMARTAPSELECTION")){							// SMART AP SELECTION
-                        smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]));
+                        if(fields.length==10){// Filename added in poolfile
+                            smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]), fields[8], fields[9]);
+                        }else{
+                            smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]), fields[8], "");
+                        }
 						log.info("SmartApSelection configured:");
 						log.info("\t\tTime_to_start: " + smartap_params.time_to_start);
 						log.info("\t\tScanning_interval: " + smartap_params.scanning_interval);
@@ -1271,6 +1275,12 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 						log.info("\t\tHysteresis_threshold: " + smartap_params.hysteresis_threshold);
 						log.info("\t\tPrevius_data_weight (alpha): " + smartap_params.weight);
 						log.info("\t\tPause between scans: " + smartap_params.pause);
+						log.info("\t\tMode: " + smartap_params.mode);
+						if(smartap_params.filename.length()>0){
+                            log.info("\t\tFilename: " + smartap_params.filename);
+                        }else{
+                            log.info("\t\tFilename not assigned");
+                        }
 						br.mark(1000);
 						continue;
 					}
@@ -1676,8 +1686,10 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		public long hysteresis_threshold;
 		public Double weight;
 		public int pause;
+		public String mode;
+		public String filename;
 
-		public SmartApSelectionParams (int time_to_start, int scanning_interval, int added_time, Double signal_threshold, long hysteresis_threshold, Double weight, int pause) {
+		public SmartApSelectionParams (int time_to_start, int scanning_interval, int added_time, Double signal_threshold, long hysteresis_threshold, Double weight, int pause, String mode, String filename) {
 			this.time_to_start = time_to_start*1000;
 			this.scanning_interval = scanning_interval;
 			this.added_time = added_time;
@@ -1685,6 +1697,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 			this.hysteresis_threshold = hysteresis_threshold;
 			this.weight = weight;
 			this.pause = pause*1000;
+            this.mode = mode;
+			this.filename = filename;
 		}
 	}
 
