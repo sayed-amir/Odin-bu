@@ -66,7 +66,8 @@
         <include name="libthrift-0.7.0.jar"/>
         <include name="commons-io-2.5.jar"/>
         <include name="javabuilder.jar"/>
-        <include name="wi5.jar"/>
+        <include name="wi5.jar"/> <!-- channelAssignment first version -->
+        <include name="getChannelAssignments.jar"/> <!-- channelAssignment with External II -->
     </patternset>
 
     <path id="classpath">

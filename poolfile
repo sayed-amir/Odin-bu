@@ -34,17 +34,19 @@ NETWORKS wi5-demo
 ####### ChannelAssignment params
 #######
 #######Start
-#######  |       Scan      Scan      Scan & Algorithm           Restart
-#######  |         |         |    ...     |                           |
-#######  |_________V_________V____________V___________________________V___
-#######  <--------><--------><-------->...<--------------------------->    t
-#######     Pause     Pause     Pause             IdleTime
+#######  |       Scan      Scan    Scan, II & Algorithm                  Restart
+#######  |         |         |    ...     |      II & Alg   II & Alg        |
+#######  |_________V_________V____________V_________V__________V____________V______
+#######  <--------><--------><-------->...<---------><---------><------->...<------  t
+#######     Pause     Pause     Pause         Pause     Pause     Pause     
+#######                                   <--------------------------------->
+#######                                             IdleTime
 #######
-####### CHANNEL TimeToStart(sec) PauseBetweenScans(sec) ScanningInterval(sec) AddedTime(sec) NumberOfScans IdleTime(sec) Channel Method Mode Filename
+####### CHANNEL TimeToStart(sec) PauseBetweenScans(sec) ScanningInterval(sec) AddedTime(sec) NumberOfScans IdleTime(sec) Channel Method Threshold Mode Filename
 ####### Method = 1 : Wi5, 2 : RANDOM, 3 : LCC  ;
 ####### Mode = auto, manual : it allows to manually force channel assignment for testing
-# APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment
-# CHANNEL 30 5 3 1 3 60 6 1 auto ChannelAssignmentLog.txt
+# APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment_II
+# CHANNEL 30 5 3 1 3 180 6 1 -150 manual ChannelAssignmentLog.txt
 
 ####### Interactive (prompt-based) application, which allows the user to introduce a channel number for each AP throught the keyboard
 # APPLICATION net.floodlightcontroller.odin.applications.ChannelPrompt
@@ -54,7 +56,7 @@ NETWORKS wi5-demo
 
 ####### Smart Ap Selection params
 ####### SMARTAPSELECTION TimeToStart(sec) ScanningInterval(msec) AddedTime(msec) SignalThreshold(dBm) Hysteresis(sec) Alpha(0-1) Pause(sec) Mode Filename
-####### Mode = RSSI; It will allow change between RSSI and FitnessFactor algorithm
+####### Mode = RSSI; It will allow change between RSSI and FittingnessFactor algorithm
 # APPLICATION net.floodlightcontroller.odin.applications.SmartApSelection
 # SMARTAPSELECTION 50 200 0 -56 4 0.2 0 RSSI SmartApSelectionLog.txt
 
