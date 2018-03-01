@@ -84,6 +84,7 @@ public class SmartApSelection extends OdinApplication {
     channels = new int[num_agents]; // Array to store the channels in use
     int[] channelsAux = new int[num_agents];
     
+    
     ps.println("[SmartAPSelection] Log file " + SMARTAP_PARAMS.filename); // Log in file
     ps.println("[SmartAPSelection] Parameters:");
     ps.println("\tTime_to_start: " + SMARTAP_PARAMS.time_to_start);
@@ -94,10 +95,18 @@ public class SmartApSelection extends OdinApplication {
 	ps.println("\tPrevius_data_weight (alpha): " + SMARTAP_PARAMS.weight);
 	ps.println("\tPause between scans: " + SMARTAP_PARAMS.pause);
 	ps.println("\tMode: " + SMARTAP_PARAMS.mode);
+	ps.println("\tTxpowerSTA: " + SMARTAP_PARAMS.txpowerSTA);
+	ps.println("\tTxpowerSTA: " + SMARTAP_PARAMS.thReqSTA);
 	ps.println("\tFilename: " + SMARTAP_PARAMS.filename);
+    
+    String showAPsLine = "\033[K\r[SmartAPSelection] ";
     
     // Get channels from APs, assuming there is no change in all operation, if already in array->0
     for (InetAddress agentAddr: getAgents()) {
+    
+      String hostIP = agentAddr.getHostAddress(); // Build line for user interface
+      showAPsLine = showAPsLine + "\033[0;1m[ AP" + hostIP.substring(hostIP.lastIndexOf('.')+1,hostIP.length()) + " ]";
+	  
 	  int chann = getChannelFromAgent(agentAddr);
 	  //System.out.println("[SmartAPSelection] = Channels " + Arrays.toString(channels));
 	  Arrays.sort(channelsAux);
@@ -119,9 +128,19 @@ public class SmartApSelection extends OdinApplication {
     Map<MACAddress, Double[]> rssiData = new HashMap<MACAddress, Double[]> (); // Map to store RSSI for each STA in all APs
     Map<MACAddress, Long> handoffDate = new HashMap<MACAddress, Long> (); // Map to store last handoff for each STA FIXME: Maybe create struct
     
+    Map<MACAddress, Double[]> ffData = new HashMap<MACAddress, Double[]> (); // Map to store Throughput available for each STA in all APs
+    
     System.out.print("\033[2J"); // Clear screen and cursor to 0,0
     char[] progressChar = new char[] { '-', '\\', '|', '/' };
     int progressIndex = 0;
+    
+    InetAddress nullAddr = null;
+		  
+    try { // Create Ip to compare with clients not assigned
+      nullAddr = InetAddress.getByName("0.0.0.0");
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+    }
     
 	while (true) {
       try {
@@ -143,6 +162,7 @@ public class SmartApSelection extends OdinApplication {
 		  continue;
 		}
 		int[] clientsChannels = new int[num_clients]; // Array with the indexes of channels, better performance in data process
+		
 		
 		// Various indexes
 		int client_index = 0;
@@ -251,7 +271,7 @@ public class SmartApSelection extends OdinApplication {
                   
                   Double client_signal = Math.pow(10.0, (rssi) / 10.0); // Linear power
                   Double client_average = Math.pow(10.0, (client_average_dBm[ind_aux]) / 10.0); // Linear power average
-                  client_average = client_average*SMARTAP_PARAMS.weight + client_signal*(1-SMARTAP_PARAMS.weight);
+                  client_average = client_average*(1-SMARTAP_PARAMS.weight) + client_signal*SMARTAP_PARAMS.weight;
                   client_average_dBm[ind_aux] = Double.valueOf((double)Math.round(1000*Math.log10(client_average))/100); //Average power in dBm with 2 decimals
                   
                 }
@@ -265,11 +285,16 @@ public class SmartApSelection extends OdinApplication {
         }
         System.out.println("\033[K\r[SmartAPSelection] Processing done in: " + (System.currentTimeMillis()-time) + " ms");
         System.out.println("\033[K\r[SmartAPSelection] ====================");
+		System.out.println("\033[K\r[SmartAPSelection] ");
+
+		System.out.println(showAPsLine + " - RSSI [dBm]\033[00m");
         
         // Now comparation and handoff if it's needed
         time = System.currentTimeMillis();
         
         ps.println(time + " ms"); // Log in file
+		
+		InetAddress[] agents = getAgents().toArray(new InetAddress[0]);
         
         for (OdinClient oc: clients) {
 		
@@ -279,21 +304,13 @@ public class SmartApSelection extends OdinApplication {
 		  
 		  Double[] client_dBm = new Double[num_agents];
 		  
-		  InetAddress nullAddr = null;
-		  
-		  try { // Create Ip to compare with clients not assigned
-            nullAddr = InetAddress.getByName("0.0.0.0");
-          } 
-          catch (UnknownHostException e) {
-            e.printStackTrace();
-          }
 		  InetAddress clientAddr = oc.getIpAddress();
           InetAddress agentAddr = oc.getLvap().getAgent().getIpAddress();
           
           if(clientAddr.equals(nullAddr))// If client not assigned, next one
             continue;
           
-          System.out.println("\033[K\r[SmartAPSelection] Client " + clientAddr + " in agent " + agentAddr);
+          System.out.println("\033[K\r[SmartAPSelection] \t\t\t\tClient " + clientAddr + " in agent " + agentAddr);
           ps.println("\tClient " + clientAddr + " in agent " + agentAddr); // Log in file
           
           client_dBm = rssiData.get(eth);
@@ -315,65 +332,189 @@ public class SmartApSelection extends OdinApplication {
             // Printf with colours
             System.out.print("\033[K\r[SmartAPSelection] ");
             
-            InetAddress[] agents = getAgents().toArray(new InetAddress[0]);
+            
           
             for(ind_aux = 0; ind_aux < client_dBm.length; ind_aux++){
             
               if(agents[ind_aux].equals(agentAddr)){ // Current AP
               
                 currentRssi = client_dBm[ind_aux];
-                System.out.print("[\033[48;5;29m" + client_dBm[ind_aux] + "\033[00m]"); // Dark Green
+                System.out.print("[\033[48;5;29;1m" + String.format("%.2f",client_dBm[ind_aux]) + "\033[00m]"); // Dark Green
                 ps.println("\t\t[Associated] Rssi in agent " + agents[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
               
               }else{
                 if(ind_aux==client_index){ // Max
                 
-                  System.out.print("[\033[48;5;88m" + client_dBm[ind_aux] + "\033[00m]"); // Dark red
+                  System.out.print("[\033[48;5;88m" + String.format("%.2f",client_dBm[ind_aux]) + "\033[00m]"); // Dark red
                   ps.println("\t\t[BetterAP] Rssi in agent " + agents[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
                 
                 }else{
-                  System.out.print("["+ client_dBm[ind_aux] +"]"); //
+                  System.out.print("["+ String.format("%.2f",client_dBm[ind_aux]) +"]"); //
                   ps.println("\t\t[WorseAP] Rssi in agent " + agents[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
                 }
-              }
-            
-              
+              } 
             }
             // End prinft with colours
-            
-            if (!agents[client_index].equals(agentAddr)){ // Change to the best RSSI
-            
-              //If Rssi threshold is reached, handoff
-              if(currentRssi<SMARTAP_PARAMS.signal_threshold){
-				  
-                Long handoffTime = handoffDate.get(eth);
+            if(SMARTAP_PARAMS.mode.equals("RSSI")){
+				if (!agents[client_index].equals(agentAddr)){ // Change to the best RSSI
 				
-                //If Time threshold is reached, handoff
-                if((handoffTime==null)||((System.currentTimeMillis()-handoffTime.longValue())/1000>SMARTAP_PARAMS.hysteresis_threshold)){
+				  //If Rssi threshold is reached, handoff
+				  if(currentRssi<SMARTAP_PARAMS.signal_threshold){
+					  
+					Long handoffTime = handoffDate.get(eth);
+					
+					//If Time threshold is reached, handoff
+					if((handoffTime==null)||((System.currentTimeMillis()-handoffTime.longValue())/1000>SMARTAP_PARAMS.hysteresis_threshold)){
 
-                  handoffClientToAp(eth,agents[client_index]);
-                  handoffDate.put(eth,Long.valueOf(System.currentTimeMillis()));
-                  System.out.println(" - Handoff >--->--->---> "+agents[client_index]);
-                  
-				  ps.println("\t\t[Action] Handoff to agent: " + agents[client_index]); // Log in file
-				  
-                }else{
-                  System.out.println(" - No Handoff: Hysteresis time not reached");
-                  ps.println("\t\t[No Action] No Handoff: Hysteresis time not reached"); // Log in file
-                }
-              }else{
-                System.out.println(" - No Handoff: Rssi Threshold not reached");
-                ps.println("\t\t[No Action] No Handoff: Rssi Threshold not reached"); // Log in file
-              }
-            }else{
-              System.out.println(""); // Best AP already
-              ps.println("\t\t[No Action] There is no better Rssi heard"); // Log in file
+					  handoffClientToAp(eth,agents[client_index]);
+					  handoffDate.put(eth,Long.valueOf(System.currentTimeMillis()));
+					  System.out.println(" - Handoff >--->--->---> "+agents[client_index]);
+					  
+					  ps.println("\t\t[Action] Handoff to agent: " + agents[client_index]); // Log in file
+					  
+					}else{
+					  System.out.println(" - No Handoff: Hysteresis time not reached");
+					  ps.println("\t\t[No Action] No Handoff: Hysteresis time not reached"); // Log in file
+					}
+				  }else{
+					System.out.println(" - No Handoff: Rssi Threshold not reached");
+					ps.println("\t\t[No Action] No Handoff: Rssi Threshold not reached"); // Log in file
+				  }
+				}else{
+				  System.out.println(""); // Best AP already
+				  ps.println("\t\t[No Action] There is no better Rssi heard"); // Log in file
+				}
             }
-            
+			if(SMARTAP_PARAMS.mode.equals("FF")){ // Calculate FF data
+                System.out.println("");
+
+                ind_aux = 0;
+                Double[] TH_av = new Double[num_agents];
+                
+                for (InetAddress agentAddrFF: getAgents()) {
+                        
+                    if(oc.getLvap().getAgent().getIpAddress().equals(agentAddrFF)){ // If associated
+                        // Reception statistics
+                        Map<MACAddress, Map<String, String>> vals_rx_FF = getRxStatsFromAgent(agentAddrFF);
+                        Map<String, String> vals_entry_rx = vals_rx_FF.get(eth);
+                        if(vals_entry_rx != null){
+                            //System.out.println("\033[K\r[SmartAPSelection] avg rate: " + vals_entry_rx.get("avg_rate") + " kbps");
+                            Double clientRate = Double.parseDouble(vals_entry_rx.get("avg_rate"));
+                            // t and T
+                            double[] tTValues = getTransmissionTime(clientRate.doubleValue());
+                            double p = 0.98*(tTValues[1]/tTValues[0]);
+                            //System.out.println("\033[K\r[SmartAPSelection] Th_av["+ind_aux+"]: " + String.format("%.2f",clientRate.doubleValue()*p));
+                            TH_av[ind_aux] = clientRate.doubleValue()*p;
+                        }else{
+                            TH_av[ind_aux] = 0.0;
+                        }
+                     
+                    }else{ // Not associated
+                        double txpowerAP = Math.pow(10.0, (getTxPowerFromAgent(agentAddrFF)) / 10.0);
+                        double txpowerSTA = Math.pow(10.0, (SMARTAP_PARAMS.txpowerSTA) / 10.0);
+                        double rssiDL = client_dBm[ind_aux]+10.0*Math.log10(txpowerAP/txpowerSTA);
+                        double snr = 90.0 + rssiDL;
+                        double maxRate = getOFDMRates(snr);
+                        double[] tTValues = getTransmissionTime(maxRate);
+                          
+                        HashSet<OdinClient> clients_FF = new HashSet<OdinClient>(getClientsFromAgent(agentAddrFF));
+                        double t2Value = calculateT2(clients_FF.size(),tTValues[0]);
+                        double p = 0.98*(tTValues[1]/t2Value);
+                        //System.out.println("\033[K\r[SmartAPSelection] Th_av["+ind_aux+"]: " + String.format("%.2f",maxRate*p));
+                        TH_av[ind_aux] = maxRate*p;
+                    }
+                    ind_aux++;
+                }
+                // Save TH_av in map
+                ffData.put(eth,TH_av);
+			}
           }else{
             System.out.println("\033[K\r[SmartAPSelection] No data received");
           }
 		}
+		if(SMARTAP_PARAMS.mode.equals("FF")){ // Show FF results and handoff if necessary
+            System.out.println("\033[K\r[SmartAPSelection] ====================");
+            System.out.println(showAPsLine + " - FF Throughput available [Mbps]\033[00m");
+			
+			for (OdinClient oc: clients) {
+                
+                
+				client_index = 0;
+				MACAddress eth = oc.getMacAddress(); // client MAC
+				InetAddress clientAddr = oc.getIpAddress();
+				InetAddress agentAddr = oc.getLvap().getAgent().getIpAddress();
+				
+				if(clientAddr.equals(nullAddr))// If client not assigned, next one
+                  continue;
+				
+				System.out.println("\033[K\r[SmartAPSelection] \t\t\t\tClient " + clientAddr + " in agent " + agentAddr);
+                ps.println("\tClient " + clientAddr + " in agent " + agentAddr); // Log in file
+				
+                Double[] th_avFF = ffData.get(eth);
+                //System.out.println("\033[K\r[SmartAPSelection] th_avFF= "+Arrays.toString(th_avFF));
+				Double maxFF = calculateFittingnessFactor(SMARTAP_PARAMS.thReqSTA,th_avFF[0]); // Start with first Th_av
+                Double currentTh_av = null;
+				System.out.println("\033[K\r[SmartAPSelection] ff[0]="+maxFF);
+				for(ind_aux = 1; ind_aux < th_avFF.length; ind_aux++){//Get max position and calculate FF
+				
+                  Double currentFF = calculateFittingnessFactor(SMARTAP_PARAMS.thReqSTA,th_avFF[ind_aux]);
+				
+                  if(currentFF>maxFF){
+                    maxFF=currentFF;
+                    client_index = ind_aux;
+                  }
+                  System.out.println("\033[K\r[SmartAPSelection] ff["+ind_aux+"]="+currentFF);
+                }
+				
+				System.out.print("\033[K\r[SmartAPSelection] ");
+				
+				for(ind_aux = 0; ind_aux < th_avFF.length; ind_aux++){
+					
+                  if(agents[ind_aux].equals(agentAddr)){ // Current AP 
+					
+                    currentTh_av = th_avFF[ind_aux];
+                    System.out.print("[ \033[48;5;29;1m" + String.format("%.2f",th_avFF[ind_aux]/1000.0) + "\033[00m]"); // Dark Green
+                    ps.println("\t\t[Associated] Throughput in agent " + agents[ind_aux] + ": " + th_avFF[ind_aux] + " kbps"); // Log in file
+              
+                  }else{
+                    if(ind_aux==client_index){ // Max
+                
+                    System.out.print("[ \033[48;5;88m" + String.format("%.2f",th_avFF[ind_aux]/1000.0) + "\033[00m]"); // Dark red
+                    ps.println("\t\t[BetterAP] Throughput in agent " + agents[ind_aux] + ": " + th_avFF[ind_aux] + " kbps"); // Log in file
+                
+                    }else{
+                      System.out.print("[ "+ String.format("%.2f",th_avFF[ind_aux]/1000.0) +"]"); //
+                      ps.println("\t\t[WorseAP] Throughput in agent " + agents[ind_aux] + ": " + th_avFF[ind_aux] + " kbps"); // Log in file
+                    }
+                  } 
+                }
+                if (!agents[client_index].equals(agentAddr)){ // Change to the best FF
+				
+				  Long handoffTime = handoffDate.get(eth);
+					
+                  //If Time threshold is reached, handoff
+                  if((handoffTime==null)||((System.currentTimeMillis()-handoffTime.longValue())/1000>SMARTAP_PARAMS.hysteresis_threshold)){
+                    
+                    if(!(currentTh_av==0.0)){
+                      handoffClientToAp(eth,agents[client_index]);
+                      handoffDate.put(eth,Long.valueOf(System.currentTimeMillis()));
+                      System.out.println("\033[0;1m - Handoff >--->--->---> "+agents[client_index]+"\033[00m");
+                      ps.println("\t\t[Action] Handoff to agent: " + agents[client_index]); // Log in file
+					}else{
+					  System.out.println(""); // No rate received
+					}  
+                  }else{
+                    System.out.println("\033[0;1m - No Handoff: Hysteresis time not reached\033[00m");
+                    ps.println("\t\t[No Action] No Handoff: Hysteresis time not reached"); // Log in file
+                  }
+				  
+				}else{
+				  System.out.println(""); // Best AP already
+				  ps.println("\t\t[No Action] There is no better FF"); // Log in file
+				}
+			}
+			System.out.println("\033[K\r[SmartAPSelection] ====================");
+        }
 		ps.flush();
 		System.out.println("\033[K\r[SmartAPSelection] Assignation done in: " + (System.currentTimeMillis()-time) + " ms");
         System.out.println("\033[K\r[SmartAPSelection] ====================");
@@ -407,5 +548,93 @@ public class SmartApSelection extends OdinApplication {
       }
     }
     return -99.9;//Not heard by the AP, return -99.9
+  }
+  private double calculateT2(int numberOfStas, double tValue){
+    double cwMin = 15.0;
+    double slot = 0.000009;
+    double result = tValue;
+    
+    if(numberOfStas>0){
+        
+        double pcValue = 1-Math.pow(1-(1/cwMin),numberOfStas);
+        double tCont = (cwMin/2)*slot*(1+pcValue)/(2*(numberOfStas+1));
+        
+        result = tValue + tCont;
+    
+    }
+    return result;
+  }
+  private double[] getTransmissionTime(double avgRate){ // Returns transmission times to calculate THavg
+	
+	double[] result;
+	
+	if(avgRate==54000.0){ // If higher value not reached, we use the next lower values
+		result = new double[]{326.0,228.0};
+		return result;
+	}else if (avgRate>=48000.0){
+		result = new double[]{354.0,256.0};
+		return result;
+	}else if (avgRate>=36000.0){
+		result = new double[]{442.0,344.0};
+		return result;
+	}else if (avgRate>=24000.0){
+		result = new double[]{610.0,512.0};
+		return result;
+	}else if (avgRate>=18000.0){
+		result = new double[]{786.0,684.0};
+		return result;
+	}else if (avgRate>=12000.0){
+		result = new double[]{1126.0,1024.0};
+		return result;
+	}else if (avgRate>=9000.0){
+		result = new double[]{1478.0,1364.0};
+		return result;
+	}else { // 6 Mbps
+		result = new double[]{2158.0,2044.0};
+		return result;
+	}
+  }
+  private double getOFDMRates(double SINR){ // Returns ODFM rates to calculate THavg
+	
+	double result = 0.0;
+	
+	if(SINR>24.6){ // If higher value not reached, we use the next lower values
+		result = 54000.0;
+		return result;
+	}else if (SINR>=24.0){
+		result = 48000.0;
+		return result;
+	}else if (SINR>=18.8){
+		result = 36000.0;
+		return result;
+	}else if (SINR>=17.0){
+		result = 24000.0;
+		return result;
+	}else if (SINR>=10.8){
+		result = 18000.0;
+		return result;
+	}else if (SINR>=9.0){
+		result = 12000.0;
+		return result;
+	}else if (SINR>=7.8){
+		result = 9000.0;
+		return result;
+	}else if (SINR>=6.0){
+		result = 6000.0;
+		return result;
+	}else { // Less than 6 dB => 0.0
+		return result;
+	}
+  }
+  private double calculateFittingnessFactor(double Rreq, double Rb){
+
+    double shaping = 5, shaping_k = 1, shaping_mine = 1.3, ff = 0;
+
+    if(Math.abs(Rb) > 1e-6){
+      double U = Math.pow(Rb * shaping_mine/Rreq, shaping) / (1 + Math.pow(Rb*shaping_mine/Rreq, shaping));
+      double lambda = 1 - Math.pow(Math.E, -shaping_k / (Math.pow(shaping-1, 1/shaping) + Math.pow(shaping-1, (1-shaping)/shaping)));
+      ff = (1 - Math.pow(Math.E, -shaping_k * U / (Rb * shaping_mine / Rreq))) / lambda;
+    }
+    return ff;
   }
 }

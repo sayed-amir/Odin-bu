@@ -245,6 +245,9 @@ class OdinAgent implements IOdinAgent {
 			if (row.length != RX_STAT_NUM_PROPERTIES + 1) {
 				continue;
 			}
+			if (row[1].split(":")[1].equals("0")) { // Avoid beacons
+                continue;
+			}
 
 			MACAddress eth = MACAddress.valueOf(row[0].toLowerCase());
 
@@ -638,7 +641,7 @@ class OdinAgent implements IOdinAgent {
 	 * @ If request is accepted return 1, otherwise, return 0
 	 */
 	@Override
-	public int requestScannedStationsStats (int channel, String ssid) { // Log dissabled
+	public int requestScannedStationsStats (int channel, String ssid) { // Log disabled
 		//log.info("Sending READ_HANDLER_SCANNING_FLAGS");
 		String flags = invokeReadHandler(READ_HANDLER_SCANING_FLAGS);
 		//log.info("Received flags: " + flags);
