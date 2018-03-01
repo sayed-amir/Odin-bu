@@ -284,5 +284,12 @@ interface IOdinMasterToApplicationInterface {
 	 * @return Key-Value entries of each recorded rssi for each wi5 station 
 	 */
 	String getScannedStaRssiFromAgent (String pool, InetAddress agentAddr);
+	
+	/**
+	 * Retreive associated wi5 stations in the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @return Set of OdinClient associated in the agent
+	 */
+	Set<OdinClient> getClientsFromAgent (String pool, InetAddress agentAddr);
 
 }

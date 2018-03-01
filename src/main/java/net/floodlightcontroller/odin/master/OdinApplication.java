@@ -344,4 +344,13 @@ public abstract class OdinApplication implements Runnable {
 	protected final String getScannedStaRssiFromAgent (InetAddress agentAddr) {
 		return odinApplicationInterfaceToMaster.getScannedStaRssiFromAgent(pool, agentAddr);
 	}
+	
+	/**
+	 * Retreive associated wi5 stations in the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @return Set of OdinClient associated in the agent
+	 */
+	protected final Set<OdinClient> getClientsFromAgent (InetAddress agentAddr) {
+		return odinApplicationInterfaceToMaster.getClientsFromAgent(pool, agentAddr);
+	}
 }
