@@ -292,7 +292,7 @@ public class ChannelAssignment extends OdinApplication {
 		for (double[] arrayCoefII: matrixII) {
             System.out.println(Arrays.toString(arrayCoefII));
             for (double coef_II: arrayCoefII) {
-                sumII += coef_II;
+                sumII -= coef_II;
             }
         }
         System.out.println("[ChannelAssignment] =================================\n");

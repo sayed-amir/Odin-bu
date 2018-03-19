@@ -1026,6 +1026,16 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	public String getScannedStaRssiFromAgent (String pool, InetAddress agentAddr) {
 		return agentManager.getAgent(agentAddr).getScannedStaRssi();
 	}
+	
+	/**
+	 * Retreive associated wi5 stations in the agent
+	 * @param agentAddr InetAddress of the agent
+	 * @return Set of OdinClient associated in the agent
+	 */
+	@Override
+	public Set<OdinClient> getClientsFromAgent (String pool, InetAddress agentAddr) {
+		return agentManager.getAgent(agentAddr).getLvapsLocal();
+	}
 
 	//********* from IFloodlightModule **********//
 
@@ -1263,10 +1273,10 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 					}
 					
 					if (fields[0].equals("SMARTAPSELECTION")){							// SMART AP SELECTION
-                        if(fields.length==10){// Filename added in poolfile
-                            smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]), fields[8], fields[9]);
+                        if(fields.length==12){// Filename added in poolfile
+                            smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]), fields[8],Integer.parseInt(fields[9]), Double.parseDouble(fields[10]), fields[11]);
                         }else{
-                            smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]), fields[8], "");
+                            smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]), fields[8],Integer.parseInt(fields[9]), Double.parseDouble(fields[10]), "");
                         }
 						log.info("SmartApSelection configured:");
 						log.info("\t\tTime_to_start: " + smartap_params.time_to_start);
@@ -1277,6 +1287,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 						log.info("\t\tPrevius_data_weight (alpha): " + smartap_params.weight);
 						log.info("\t\tPause between scans: " + smartap_params.pause);
 						log.info("\t\tMode: " + smartap_params.mode);
+						log.info("\t\tTxpowerSTA: " + smartap_params.txpowerSTA);
+						log.info("\t\tThReqSTA: " + smartap_params.thReqSTA);
 						if(smartap_params.filename.length()>0){
                             log.info("\t\tFilename: " + smartap_params.filename);
                         }else{
@@ -1690,9 +1702,11 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 		public Double weight;
 		public int pause;
 		public String mode;
+		public int txpowerSTA;
+		public Double thReqSTA;
 		public String filename;
 
-		public SmartApSelectionParams (int time_to_start, int scanning_interval, int added_time, Double signal_threshold, long hysteresis_threshold, Double weight, int pause, String mode, String filename) {
+		public SmartApSelectionParams (int time_to_start, int scanning_interval, int added_time, Double signal_threshold, long hysteresis_threshold, Double weight, int pause, String mode, int txpowerSTA, Double thReqSTA, String filename) {
 			this.time_to_start = time_to_start*1000;
 			this.scanning_interval = scanning_interval;
 			this.added_time = added_time;
@@ -1701,6 +1715,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 			this.weight = weight;
 			this.pause = pause*1000;
             this.mode = mode;
+            this.txpowerSTA = txpowerSTA;
+			this.thReqSTA = thReqSTA;
 			this.filename = filename;
 		}
 	}
