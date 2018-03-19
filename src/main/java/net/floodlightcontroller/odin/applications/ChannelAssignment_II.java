@@ -318,7 +318,7 @@ public class ChannelAssignment_II extends OdinApplication {
             
             time = System.currentTimeMillis();
             
-            if(Double.compare(sumII,CHANNEL_PARAMS.threshold.doubleValue())>0){// Compare   
+            if(Double.compare(sumII,CHANNEL_PARAMS.threshold.doubleValue())<0){// Compare   
                 System.out.println("[ChannelAssignment] Interference Impact: " + sumII);
 				System.out.println("[ChannelAssignment] Threshold: " + CHANNEL_PARAMS.threshold); // Print Threshold
                 System.out.println("[ChannelAssignment] ChannelAssignment not necessary");
@@ -490,13 +490,17 @@ public class ChannelAssignment_II extends OdinApplication {
 		System.out.println("[ChannelAssignment] = INTERNAL INTERFERENCE IMPACT =\n");
 		double sumII = 0;
 		for (double[] arrayCoefII: matrixII) {
-            System.out.println(Arrays.toString(arrayCoefII));
+
+            System.out.print("[ ");
             for (double coef_II: arrayCoefII) {
+                System.out.print(String.format("%.2f",coef_II)+" ");
                 sumII += coef_II;
             }
+            System.out.println("]");
         }
         System.out.println("[ChannelAssignment] =================================\n");
-        
+        sumII = -sumII;
+		
         return sumII;
     }
     private double[][] getExternalII(int scanningInterval, int numAPs){ // Function to get and calculate External Interference Impact
@@ -601,7 +605,12 @@ public class ChannelAssignment_II extends OdinApplication {
         System.out.println("[ChannelAssignment] =================================");
 		System.out.println("[ChannelAssignment] = EXTERNAL INTERFERENCE IMPACT =\n");
 		for (double[] arrayCoefII: externalII) {
-            System.out.println(Arrays.toString(arrayCoefII));
+            //System.out.println(Arrays.toString(arrayCoefII));
+            System.out.print("[ ");
+            for (double coef_II: arrayCoefII) {
+                System.out.print(String.format("%.2f",coef_II)+" ");
+            }
+            System.out.println("]");
         }
         System.out.println("[ChannelAssignment] =================================\n");
         
