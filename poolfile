@@ -46,7 +46,7 @@ NETWORKS wi5-demo
 ####### Method = 1 : Wi5, 2 : RANDOM, 3 : LCC  ;
 ####### Mode = auto, manual : it allows to manually force channel assignment for testing
 # APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment_II
-# CHANNEL 30 5 3 1 3 180 6 1 150 manual ChannelAssignmentLog.txt
+# CHANNEL 30 5 3 1 3 180 6 1 -50 manual ChannelAssignmentLog.txt
 
 ####### Interactive (prompt-based) application, which allows the user to introduce a channel number for each AP throught the keyboard
 # APPLICATION net.floodlightcontroller.odin.applications.ChannelPrompt
