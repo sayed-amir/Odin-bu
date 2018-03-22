@@ -290,12 +290,27 @@ public class ChannelAssignment extends OdinApplication {
 		System.out.println("[ChannelAssignment] = MATRIX OF INTERFERENCE IMPACT =\n");
 		double sumII = 0;
 		for (double[] arrayCoefII: matrixII) {
-            System.out.println(Arrays.toString(arrayCoefII));
+
+            System.out.print("[ ");
             for (double coef_II: arrayCoefII) {
-                sumII -= coef_II;
+                System.out.print(String.format("%.2f",coef_II)+" ");
+            }
+            System.out.println("]");
+        }
+        double sumIIlineal = 0;
+        for (double[] arrayCoefII: matrixII) {
+
+            for (double coef_II: arrayCoefII) {
+                if(coef_II!=0.0){
+                    double coef_II_lineal = Math.pow(10.0, coef_II / 10.0);
+                    sumIIlineal += coef_II_lineal;
+                }
             }
         }
-        System.out.println("[ChannelAssignment] =================================\n");
+		if(sumIIlineal!=0){ // The algorithm is triggered only if sumII not 0
+			sumII = 10.0*Math.log10(sumIIlineal);//II in dB;
+        }
+		System.out.println("[ChannelAssignment] =================================\n");
         if(number_scans < (CHANNEL_PARAMS.number_scans-1)){
             number_scans++;
             Thread.sleep(CHANNEL_PARAMS.pause);

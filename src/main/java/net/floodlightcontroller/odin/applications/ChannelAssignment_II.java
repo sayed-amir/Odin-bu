@@ -285,7 +285,7 @@ public class ChannelAssignment_II extends OdinApplication {
 			matrix = matrix + "\n";
 		}
 		//Print matrix
-		System.out.println("[ChannelAssignment] === MATRIX OF PATHLOSS (dB) ===");
+		System.out.println("[ChannelAssignment] ==== MATRIX OF PATHLOSS (dB) ====");
 		System.out.println("[ChannelAssignment]     " + (number_scans+1) + " scans\n");
         System.out.println(matrix);            
 		System.out.println("[ChannelAssignment] =================================");	
@@ -319,7 +319,7 @@ public class ChannelAssignment_II extends OdinApplication {
             time = System.currentTimeMillis();
             
             if(Double.compare(sumII,CHANNEL_PARAMS.threshold.doubleValue())<0){// Compare   
-                System.out.println("[ChannelAssignment] Interference Impact: " + sumII);
+                System.out.println("[ChannelAssignment] Interference Impact: " + String.format("%.2f",sumII));
 				System.out.println("[ChannelAssignment] Threshold: " + CHANNEL_PARAMS.threshold); // Print Threshold
                 System.out.println("[ChannelAssignment] ChannelAssignment not necessary");
                 System.out.println("[ChannelAssignment] =================================");
@@ -354,7 +354,8 @@ public class ChannelAssignment_II extends OdinApplication {
             }
             else{
                 if(isValidforChAssign) { // Launch Algorithm
-                    System.out.println("[ChannelAssignment] Interference Impact: " + sumII);
+                    System.out.println("[ChannelAssignment] Interference Impact: " + String.format("%.2f",sumII));
+                    System.out.println("[ChannelAssignment] Threshold: " + CHANNEL_PARAMS.threshold); // Print Threshold
                     
                     externalII = getExternalII(CHANNEL_PARAMS.scanning_interval,numAPs);
                     
@@ -486,21 +487,30 @@ public class ChannelAssignment_II extends OdinApplication {
                 }
             }
         }
-        System.out.println("[ChannelAssignment] =================================");
-		System.out.println("[ChannelAssignment] = INTERNAL INTERFERENCE IMPACT =\n");
+        System.out.println("[ChannelAssignment] ======================================");
+		System.out.println("[ChannelAssignment] = INTERNAL INTERFERENCE IMPACT [dBm] =\n");
 		double sumII = 0;
 		for (double[] arrayCoefII: matrixII) {
 
             System.out.print("[ ");
             for (double coef_II: arrayCoefII) {
                 System.out.print(String.format("%.2f",coef_II)+" ");
-                sumII += coef_II;
             }
             System.out.println("]");
         }
-        System.out.println("[ChannelAssignment] =================================\n");
-        sumII = -sumII;
-		
+        double sumIIlineal = 0;
+        for (double[] arrayCoefII: matrixII) {
+
+            for (double coef_II: arrayCoefII) {
+                if(coef_II!=0.0){
+                    double coef_II_lineal = Math.pow(10.0, coef_II / 10.0);
+                    sumIIlineal += coef_II_lineal;
+                }
+            }
+        }
+        sumII = 10.0*Math.log10(sumIIlineal);//II in dB;
+        System.out.println("");
+		System.out.println("[ChannelAssignment] ======================================");
         return sumII;
     }
     private double[][] getExternalII(int scanningInterval, int numAPs){ // Function to get and calculate External Interference Impact
@@ -612,6 +622,7 @@ public class ChannelAssignment_II extends OdinApplication {
             }
             System.out.println("]");
         }
+        System.out.println("");
         System.out.println("[ChannelAssignment] =================================\n");
         
         return externalII;
