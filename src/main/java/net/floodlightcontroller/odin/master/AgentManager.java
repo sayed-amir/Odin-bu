@@ -102,7 +102,7 @@ class AgentManager {
 	protected boolean receivePing(final InetAddress odinAgentAddr) {
 
 		//if we receive a ping from a new agent
-		if (!isTracked (odinAgentAddr)) {
+		if ((!isTracked (odinAgentAddr))&&(!odinAgentAddr.getHostAddress().equals(OdinMaster.getDetectorIpAddress()))) {
 
 			log.debug("Ping message from: " + odinAgentAddr);
 

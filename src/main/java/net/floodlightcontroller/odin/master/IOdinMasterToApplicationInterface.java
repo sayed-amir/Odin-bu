@@ -291,5 +291,13 @@ interface IOdinMasterToApplicationInterface {
 	 * @return Set of OdinClient associated in the agent
 	 */
 	Set<OdinClient> getClientsFromAgent (String pool, InetAddress agentAddr);
+	
+	/**
+	 * Return Vip AP IP address
+	 * 
+	 * @return vipAPIpaddress
+	 * 
+	 */
+	String getVipAPIpAddress ();
 
 }

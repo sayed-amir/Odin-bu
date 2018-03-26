@@ -353,4 +353,14 @@ public abstract class OdinApplication implements Runnable {
 	protected final Set<OdinClient> getClientsFromAgent (InetAddress agentAddr) {
 		return odinApplicationInterfaceToMaster.getClientsFromAgent(pool, agentAddr);
 	}
+	
+	/**
+	 * Return Vip AP IP address
+	 * 
+	 * @return vipAPIpaddress
+	 * 
+	 */
+	protected final String getVipAPIpAddress (){
+	  return odinApplicationInterfaceToMaster.getVipAPIpAddress();
+	}
 }

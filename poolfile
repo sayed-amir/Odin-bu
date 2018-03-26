@@ -56,12 +56,15 @@ NETWORKS wi5-demo
 
 ####### Smart Ap Selection params
 ####### SMARTAPSELECTION TimeToStart(sec) ScanningInterval(msec) AddedTime(msec) SignalThreshold(dBm) Hysteresis(sec) Alpha(0-1) Pause(sec) Mode TxpowerSTA(dBm) ThReqSTA(kbps) Filename
-####### Mode = RSSI, FF , BALANCER ; Choose between RSSI, FittingnessFactor algorithm or Balancer
+####### Mode = RSSI, FF, BALANCER, DETECTOR; Choose between RSSI, FittingnessFactor algorithm, Balancer or Detector modes
 # APPLICATION net.floodlightcontroller.odin.applications.SmartApSelection
-# SMARTAPSELECTION 50 200 0 -56 4 0.8 0 BALANCER 10 2000 SmartApSelectionLog.txt
+# SMARTAPSELECTION 50 200 0 -56 4 0.8 0 DETECTOR 10 2000 SmartApSelectionLog.txt
 
 ####### Demo Statistics
 # APPLICATION net.floodlightcontroller.odin.applications.DemoStatistics
+
+####### VIP AP IP Address
+# VIPAP 192.168.1.14
 
 # Pool-2
 #NAME pool-2

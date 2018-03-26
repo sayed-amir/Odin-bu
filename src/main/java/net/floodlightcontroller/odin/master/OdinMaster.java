@@ -77,6 +77,8 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 
 	private static String detector_ip_address = "0.0.0.0"; // Detector Ip Address not assigned
 	
+    private static String vip_ap_ip_address = "0.0.0.0"; // Detector Ip Address not assigned
+	
 	private static MobilityParams mobility_params; // MobilityManager parameters
 	
 	private static ScannParams matrix_params; // ShowMatrixOfDistancedBs parameters
@@ -116,7 +118,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	 */
 	synchronized void receivePing (final InetAddress odinAgentAddr) {
 		
-		if (agentManager.receivePing(odinAgentAddr)) {
+		if (agentManager.receivePing(odinAgentAddr)&&(!odinAgentAddr.getHostAddress().equals(OdinMaster.detector_ip_address))) { // Detector does not need to be checked
 			log.info(odinAgentAddr.getHostAddress() + " is a new agent");
 			// if the above leads to a new agent being
 			// tracked, push the current subscription list
@@ -148,7 +150,9 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 			}
 		}
 		else {
-			updateAgentLastHeard (odinAgentAddr);
+            if(!odinAgentAddr.getHostAddress().equals(OdinMaster.detector_ip_address)){
+                updateAgentLastHeard (odinAgentAddr);
+            }
 		}
 	}
 
@@ -356,7 +360,7 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 			final int SrcPort = Integer.parseInt(fields[3]);
 			final int DstPort = Integer.parseInt(fields[4]);
 
-			log.info("We receive a detected flow "+ IPSrcAddress + " " + IPDstAddress + " " + protocol + " " + SrcPort + " " + DstPort + " " + "registered as Id: " + entry.getKey() + "  from: " + odinAgentAddr.getHostAddress());
+			//log.info("We receive a detected flow "+ IPSrcAddress + " " + IPDstAddress + " " + protocol + " " + SrcPort + " " + DstPort + " " + "registered as Id: " + entry.getKey() + "  from: " + odinAgentAddr.getHostAddress());
 			
 			FlowDetectionCallbackContext cntx = new FlowDetectionCallbackContext(odinAgentAddr, IPSrcAddress, IPDstAddress, protocol, SrcPort, DstPort );
 			//FlowDetectionCallbackContext cntx = new FlowDetectionCallbackContext(oa, IPSrcAddress, IPDstAddress, protocol, SrcPort, DstPort );
@@ -491,6 +495,16 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 	//@Override
 	public static String getDetectorIpAddress (){
 		return OdinMaster.detector_ip_address;
+	}
+	
+	/**
+	 * Return Vip AP Ip Address
+	 *
+	 * @return String VIP AP Ip Address
+	 */
+	@Override
+	public String getVipAPIpAddress (){
+		return OdinMaster.vip_ap_ip_address;
 	}
 
 	//********* Odin methods to be used by applications (from IOdinMasterToApplicationInterface) **********//
@@ -1294,6 +1308,13 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
                         }else{
                             log.info("\t\tFilename not assigned");
                         }
+						br.mark(1000);
+						continue;
+					}
+					
+					if (fields[0].equals("VIPAP")){							// VIP AGENT
+						vip_ap_ip_address = fields[1];
+						log.info("VIP AP ip address " + vip_ap_ip_address);
 						br.mark(1000);
 						continue;
 					}

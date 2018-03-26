@@ -14,6 +14,9 @@ import java.math.*;
 
 import net.floodlightcontroller.odin.master.OdinApplication;
 import net.floodlightcontroller.odin.master.OdinClient;
+import net.floodlightcontroller.odin.master.OdinEventFlowDetection;
+import net.floodlightcontroller.odin.master.FlowDetectionCallback;
+import net.floodlightcontroller.odin.master.FlowDetectionCallbackContext;
 import net.floodlightcontroller.odin.master.OdinMaster.SmartApSelectionParams;
 import net.floodlightcontroller.util.MACAddress;
 
@@ -46,7 +49,44 @@ public class SmartApSelection extends OdinApplication {
   private long time = 0L; // Compare timestamps in ms
   
   InetAddress nullAddr = null;
+  InetAddress vipAPAddr = null;
+  InetAddress nonVipAPAddr = null; // If the STA connects to VIP first, we need to handoff to other AP
+  
+  private int vip_index = 0;
+  /**
+  * Flow detection
+  */
+  private final String IPSrcAddress;				// Handle a IPSrcAddress or all IPSrcAddress ("*")
+  private final String IPDstAddress;				// Handle a IPDstAddress or all IPDstAddress ("*")
+  private final int protocol;						// Handle a protocol or all protocol ("*")
+  private final int SrcPort;						// Handle a SrcPort or all SrcPort ("*")
+  private final int DstPort;						// Handle a DstPort or all DstPort ("*")
+  
+  Map<InetAddress, DetectedFlow> flowsReceived = new HashMap<InetAddress, DetectedFlow> ();
 
+  public SmartApSelection () {
+    this.IPSrcAddress = "*";
+    this.IPDstAddress = "*";
+    this.protocol = 0;
+    this.SrcPort = 0;
+    this.DstPort = 0;
+  }
+
+  /**
+  * Register flow detection
+  */
+  private void initDetection () {
+		OdinEventFlowDetection oefd = new OdinEventFlowDetection();
+		oefd.setFlowDetection(this.IPSrcAddress, this.IPSrcAddress, this.protocol, this.SrcPort, this.DstPort); 
+		FlowDetectionCallback cb = new FlowDetectionCallback() {
+			@Override
+			public void exec(OdinEventFlowDetection oefd, FlowDetectionCallbackContext cntx) {
+					handler(oefd, cntx);
+			}
+		};
+		/* Before executing this line, make sure the agents declared in poolfile are started */	
+		registerFlowDetection(oefd, cb);
+  }
   /**
    * Condition for a hand off
    *
@@ -71,7 +111,7 @@ public class SmartApSelection extends OdinApplication {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-
+    
     // Write on file integration
     PrintStream ps = null;
 
@@ -104,6 +144,15 @@ public class SmartApSelection extends OdinApplication {
     ps.println("\tFilename: " + SMARTAP_PARAMS.filename);
 
     String showAPsLine = "\033[K\r[SmartAPSelection] ";
+    
+    try { // Create Ip to compare with clients not assigned
+      nullAddr = InetAddress.getByName("0.0.0.0");
+      vipAPAddr = InetAddress.getByName(getVipAPIpAddress());
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+    }
+    
+    int ind_aux = 0;
 
     // Get channels from APs, assuming there is no change in all operation, if already in array->0
     for (InetAddress agentAddr: agents) {
@@ -123,7 +172,14 @@ public class SmartApSelection extends OdinApplication {
       }
       System.out.println("[SmartAPSelection] AP " + agentAddr + " in channel: " + chann);
       ps.println("[SmartAPSelection] AP " + agentAddr + " in channel: " + chann); // Log in file
+      
+      if(agentAddr.equals(vipAPAddr)){
+        vip_index=ind_aux;
+      }else{
+        nonVipAPAddr = agentAddr;
+      }
       num_channels++;
+      ind_aux++;
     }
     ps.println("[SmartAPSelection]");
     ps.flush();
@@ -138,13 +194,7 @@ public class SmartApSelection extends OdinApplication {
     char[] progressChar = new char[] { '-', '\\', '|', '/' };
     int progressIndex = 0;
 
-    
-
-    try { // Create Ip to compare with clients not assigned
-      nullAddr = InetAddress.getByName("0.0.0.0");
-    } catch (UnknownHostException e) {
-      e.printStackTrace();
-    }
+    initDetection (); // Register flow detection
 
     while (true) {
       try {
@@ -171,7 +221,7 @@ public class SmartApSelection extends OdinApplication {
         // Various indexes
         int client_index = 0;
         int client_channel = 0;
-        int ind_aux = 0;
+        ind_aux = 0;
 
         System.out.println("\033[K\r[SmartAPSelection] ====================");
         System.out.println("\033[K\r[SmartAPSelection] Proactive AP Handoff");
@@ -325,9 +375,9 @@ public class SmartApSelection extends OdinApplication {
 
             Double currentRssi = null;
 
-            for(ind_aux = 1; ind_aux < client_dBm.length; ind_aux++){//Get max position
+            for(ind_aux = 1; ind_aux < client_dBm.length; ind_aux++){//Get max position, VIP AP not considered
 
-              if(client_dBm[ind_aux]>maxRssi){
+              if((client_dBm[ind_aux]>maxRssi)&&(!vipAPAddr.equals(agentsArray[ind_aux]))){
                 maxRssi=client_dBm[ind_aux];
                 client_index = ind_aux;
               }
@@ -343,23 +393,31 @@ public class SmartApSelection extends OdinApplication {
               if(agentsArray[ind_aux].equals(agentAddr)){ // Current AP
 
                 currentRssi = client_dBm[ind_aux];
-                System.out.print("[\033[48;5;29;1m" + String.format("%.2f",client_dBm[ind_aux]) + "\033[00m]"); // Dark Green
+                if(agentsArray[ind_aux].equals(vipAPAddr)){
+                  System.out.print("[\033[48;5;3;1m" + String.format("%.2f",client_dBm[ind_aux]) + "\033[00m]"); // Olive
+                }else{
+                  System.out.print("[\033[48;5;29;1m" + String.format("%.2f",client_dBm[ind_aux]) + "\033[00m]"); // Dark Green
+                }
                 ps.println("\t\t[Associated] Rssi in agent " + agentsArray[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
 
               }else{
-                if(ind_aux==client_index){ // Max
+                if(ind_aux==client_index){ // Max, VIP AP not considered
 
                   System.out.print("[\033[48;5;88m" + String.format("%.2f",client_dBm[ind_aux]) + "\033[00m]"); // Dark red
                   ps.println("\t\t[BetterAP] Rssi in agent " + agentsArray[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
 
                 }else{
-                  System.out.print("["+ String.format("%.2f",client_dBm[ind_aux]) +"]"); //
+                  if(agentsArray[ind_aux].equals(vipAPAddr)){
+                    System.out.print("[\033[48;5;94m" + String.format("%.2f",client_dBm[ind_aux]) + "\033[00m]"); // Orange
+                  }else{
+                    System.out.print("["+ String.format("%.2f",client_dBm[ind_aux]) +"]"); //
+                  }
                   ps.println("\t\t[WorseAP] Rssi in agent " + agentsArray[ind_aux] + ": " + client_dBm[ind_aux] + " dBm"); // Log in file
                 }
               } 
             }
             // End prinft with colours
-            if(SMARTAP_PARAMS.mode.equals("RSSI")||SMARTAP_PARAMS.mode.equals("BALANCER")){ // In BALANCER mode, it will assign STAs to APs always with higher RSSI than threshold, so there is not ping pong effect
+            if(!SMARTAP_PARAMS.mode.equals("FF")){ // In BALANCER mode, it will assign STAs to APs always with higher RSSI than threshold, so there is not ping pong effect
               if (!agentsArray[client_index].equals(agentAddr)){ // Change to the best RSSI
 
                 //If Rssi threshold is reached, handoff
@@ -380,12 +438,15 @@ public class SmartApSelection extends OdinApplication {
                     ps.println("\t\t[No Action] No Handoff: Hysteresis time not reached"); // Log in file
                   }
                 }else{
-                  if(!SMARTAP_PARAMS.mode.equals("BALANCER")){
+                  if(SMARTAP_PARAMS.mode.equals("RSSI")){
                     System.out.println(" - No Handoff: Rssi Threshold not reached");
                     ps.println("\t\t[No Action] No Handoff: Rssi Threshold not reached"); // Log in file
-                  }else{
+                  }else if(SMARTAP_PARAMS.mode.equals("BALANCER")){
                     System.out.println(" - Assigned by BALANCER");
                     ps.println("\t\t[No Action] No Handoff: Assigned by BALANCER"); // Log in file
+                  }else{
+                    System.out.println(" - Assigned by DETECTOR");
+                    ps.println("\t\t[No Action] No Handoff: Assigned by DETECTOR"); // Log in file
                   }
                 }
               }else{
@@ -559,6 +620,60 @@ public class SmartApSelection extends OdinApplication {
               
             }
             System.out.println("");
+          }
+        }
+        if(SMARTAP_PARAMS.mode.equals("DETECTOR")){ // If a flow is detected, the STA is moved to the VIP AP FIXME minimum rssi
+          System.out.println("\033[K\r[SmartAPSelection] ====================");
+          System.out.println(showAPsLine + " - DETECTOR - AP VIP: "+vipAPAddr+"\033[00m");
+          System.out.print("\033[K\r[SmartAPSelection] ");
+          printAgentsLoad(agentsArray,vipAPAddr); // Print load and VIP agent
+          System.out.println("");
+          for(OdinClient oc:clients){ // All clients
+            MACAddress eth = oc.getMacAddress(); // client MAC
+            InetAddress clientAddr = oc.getIpAddress(); // client IP
+            
+            if(flowsReceived.containsKey(clientAddr)){
+              DetectedFlow cntx = flowsReceived.get(clientAddr);
+              /*System.out.print("\033[K\r\t[Flow]     -> Source IP: " + cntx.IPSrcAddress + "\n");
+              System.out.print("\033[K\r\t[Flow]     -> Destination IP: " + cntx.IPDstAddress + "\n");
+              System.out.print("\033[K\r\t[Flow]     -> Protocol IP: " + cntx.protocol + "\n");
+              System.out.print("\033[K\r\t[Flow]     -> Source Port: " + cntx.SrcPort + "\n");
+              System.out.print("\033[K\r\t[Flow]     -> Destination Port: " + cntx.DstPort + "\n");
+              System.out.print("\033[K\r\t[Flow] from agent: " + cntx.odinAgentAddr + " at " + cntx.timeStamp + "\n");*/
+              
+              if((System.currentTimeMillis()-cntx.timeStamp)>30000){ // Clean flow after 30 sec
+                flowsReceived.remove(clientAddr);
+                System.out.print("\033[K\r\t[Flow] Clean flow from client " + clientAddr + " - Handoff\n");
+                handoffClientToAp(eth,cntx.lastAgentAddr);
+              }else{
+                InetAddress agentAddr = oc.getLvap().getAgent().getIpAddress();
+                if(!vipAPAddr.equals(agentAddr)){
+                  Double[] client_dBm = rssiData.get(eth);
+                  if(client_dBm[vip_index]>SMARTAP_PARAMS.signal_threshold){
+                    System.out.print("\033[K\r\t[Flow] Detected flow from client " + clientAddr + " - Handoff\n");
+                    cntx.lastAgentAddr = agentAddr;
+                    flowsReceived.put(clientAddr,cntx);
+                    handoffClientToAp(eth,vipAPAddr);
+                  }else{
+                    System.out.print("\033[K\r\t[Flow] Detected flow from client " + clientAddr + " - Signal threshold NOT reached\n");
+                  }
+                }else{
+                  System.out.print("\033[K\r\t[Flow] " + clientAddr + " already in VIP AP\n");
+                }
+              }
+            }/*else{
+              System.out.print("\033[K\r\t[Flow] No flow for client "+clientAddr+"\n");
+            }*/
+          }
+          for(OdinClient oc:getClientsFromAgent(vipAPAddr)){ // In case STA is associated before the app stars
+            MACAddress eth = oc.getMacAddress(); // client MAC
+            InetAddress clientAddr = oc.getIpAddress(); // client IP
+            
+            if(!flowsReceived.containsKey(clientAddr)){
+
+              handoffClientToAp(eth,nonVipAPAddr);
+              
+            }
           }
         }
         ps.flush();
@@ -767,5 +882,83 @@ public class SmartApSelection extends OdinApplication {
       System.out.print("\033[0;1m - Handoff ordered\033[00m");
     }
     return arrayHandoff;
+  }
+  /**
+  * This method show detected flows
+  *
+  * @param oefd
+  * @param cntx
+  */
+  private void handler (OdinEventFlowDetection oefd, FlowDetectionCallbackContext cntx) {
+    
+	InetAddress IPSrcAddress = null;
+    InetAddress IPDstAddress = null;
+    //InetAddress odinAgentAddr = null;
+	
+	try {
+      IPSrcAddress = InetAddress.getByName(cntx.IPSrcAddress);
+      IPDstAddress = InetAddress.getByName(cntx.IPDstAddress);
+      //odinAgentAddr = InetAddress.getByName(cntx.odinAgentAddr);
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+    }
+    
+    DetectedFlow flowDetected = new DetectedFlow(IPSrcAddress,IPDstAddress,cntx.protocol,cntx.SrcPort,cntx.DstPort,cntx.odinAgentAddr,this.nonVipAPAddr,System.currentTimeMillis()) ;
+    
+    this.flowsReceived.put(IPSrcAddress, flowDetected);
+  }
+  public class DetectedFlow {
+		public InetAddress IPSrcAddress;
+		public InetAddress IPDstAddress;
+		public int protocol;
+		public int SrcPort;
+		public int DstPort;
+		public InetAddress odinAgentAddr;
+		public InetAddress lastAgentAddr;
+		public long timeStamp;
+
+		public DetectedFlow (InetAddress IPSrcAddress, InetAddress IPDstAddress, int protocol, int SrcPort, int DstPort, InetAddress odinAgentAddr, InetAddress lastAgentAddr, long timeStamp) {
+			this.IPSrcAddress = IPSrcAddress;
+            this.IPDstAddress = IPDstAddress;
+            this.protocol = protocol;
+            this.SrcPort = SrcPort;
+            this.DstPort = DstPort;
+            this.odinAgentAddr = odinAgentAddr;
+            this.lastAgentAddr = lastAgentAddr;
+            this.timeStamp = timeStamp;
+		}
+	}
+  private void printAgentsLoad(InetAddress[] agentsArray,InetAddress vipAgent){ // Print load in each AP
+
+    int ind_aux = 0;
+    int[] numStasPerAgent = new int[agentsArray.length];
+
+    HashSet<OdinClient> clients_AP;
+
+    for (InetAddress agentAddrAP: agentsArray) { // Create array with number of STAs for each AP
+
+      clients_AP = new HashSet<OdinClient>(getClientsFromAgent(agentAddrAP));
+
+      int numberOfStas = clients_AP.size();
+
+      numStasPerAgent[ind_aux] = numberOfStas;
+      
+      ind_aux++;
+    }
+    ind_aux = 0;
+
+    for (InetAddress agentAddrAP: agentsArray) { // Print APs and number of STAs associated at it
+
+      if(vipAgent.equals(agentAddrAP)){ // VIP agent
+        if(numStasPerAgent[ind_aux]>0){
+          System.out.print("[\033[48;5;3;1m  "+numStasPerAgent[ind_aux]+"   \033[00m]");
+        }else{
+          System.out.print("[\033[48;5;94m  "+numStasPerAgent[ind_aux]+"   \033[00m]");
+        }
+      }else{
+        System.out.print("[  "+numStasPerAgent[ind_aux]+"   ]");
+      }
+      ind_aux++;
+    }
   }
 }
