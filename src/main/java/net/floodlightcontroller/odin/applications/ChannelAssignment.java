@@ -319,8 +319,9 @@ public class ChannelAssignment extends OdinApplication {
 		
 		// End of loop for iteration, as result, a moving mean of the matrix
         time = System.currentTimeMillis();
-        if(sumII==0){   
-            System.out.println("[ChannelAssignment] Interference Impact: " + sumII);
+        if((Double.compare(sumII,CHANNEL_PARAMS.threshold.doubleValue())<0)||(sumII==0)){   
+            System.out.println("[ChannelAssignment] Interference Impact: " + String.format("%.2f",sumII));
+			System.out.println("[ChannelAssignment] Threshold: " + CHANNEL_PARAMS.threshold); // Print Threshold
             System.out.println("[ChannelAssignment] ChannelAssignment not necessary");
             System.out.println("[ChannelAssignment] =================================");
             System.out.println("[ChannelAssignment] Idle for " + CHANNEL_PARAMS.idle_time + " seconds\n");
@@ -329,19 +330,21 @@ public class ChannelAssignment extends OdinApplication {
             matrixII = new double[numAPs][numAPs];
             Thread.sleep(CHANNEL_PARAMS.idle_time*1000);
             continue;
-        }
-		if(isValidforChAssign) {
-            System.out.println("[ChannelAssignment] Interference Impact: " + sumII);
-			channels = this.getChannelAssignments(pathLosses, CHANNEL_PARAMS.method); // Method: 1 for WI5, 2 for RANDOM, 3 for LCC
-            System.out.println("[ChannelAssignment] Timestamp - Algorithm: " + System.currentTimeMillis() + " ms since epoch");
-			int i=0;
-			for (InetAddress agentAddr: getAgents()) {
-				System.out.println("[ChannelAssignment] Setting AP " + agentAddr + " to channel: " + channels[0][i]);
-				setChannelToAgent(agentAddr,channels[0][i]);
-				i++;
+        }else{
+			if(isValidforChAssign) {
+				System.out.println("[ChannelAssignment] Interference Impact: " + String.format("%.2f",sumII));
+				System.out.println("[ChannelAssignment] Threshold: " + CHANNEL_PARAMS.threshold); // Print Threshold
+				channels = this.getChannelAssignments(pathLosses, CHANNEL_PARAMS.method); // Method: 1 for WI5, 2 for RANDOM, 3 for LCC
+				System.out.println("[ChannelAssignment] Timestamp - Algorithm: " + System.currentTimeMillis() + " ms since epoch");
+				int i=0;
+				for (InetAddress agentAddr: getAgents()) {
+					System.out.println("[ChannelAssignment] Setting AP " + agentAddr + " to channel: " + channels[0][i]);
+					setChannelToAgent(agentAddr,channels[0][i]);
+					i++;
+				}
+			}else{
+				System.out.println("[ChannelAssignment] Matrix not valid for channel assignment");
 			}
-		}else{
-			System.out.println("[ChannelAssignment] Matrix not valid for channel assignment");
 		}
 		System.out.println("[ChannelAssignment] Processing done in: " + (System.currentTimeMillis()-time) + " ms");
 		System.out.println("[ChannelAssignment] =================================");

@@ -35,18 +35,23 @@ NETWORKS wi5-demo
 #######
 #######Start
 #######  |       Scan      Scan    Scan, II & Algorithm                  Restart
-#######  |         |         |    ...     |      II & Alg   II & Alg        |
-#######  |_________V_________V____________V_________V__________V____________V______
-#######  <--------><--------><-------->...<---------><---------><------->...<------  t
-#######     Pause     Pause     Pause         Pause     Pause     Pause     
-#######                                   <--------------------------------->
-#######                                             IdleTime
+#######  |         |         |    ...     |                               |
+#######  |_________V_________V____________V_______________________________V___
+#######  <--------><--------><-------->...<------------------------------->    t
+#######     Pause     Pause     Pause                IdleTime
 #######
 ####### CHANNEL TimeToStart(sec) PauseBetweenScans(sec) ScanningInterval(sec) AddedTime(sec) NumberOfScans IdleTime(sec) Channel Method Threshold Mode Filename
 ####### Method = 1 : Wi5, 2 : RANDOM, 3 : LCC  ;
 ####### Mode = auto, manual : it allows to manually force channel assignment for testing
-# APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment_II
+# APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment
 # CHANNEL 30 5 3 1 3 180 6 1 -50 manual ChannelAssignmentLog.txt
+
+####### ChannelAssignment with External Interference Impact params
+####### CHANNEL TimeToStart(sec) PauseBetweenScans(sec) ScanningInterval(sec) AddedTime(sec) NumberOfScans Timeout(sec) Channel Method Threshold Mode Filename
+####### Method = 1 : Wi5, 2 : RANDOM, 3 : LCC  ;
+####### Mode = auto, manual : it allows to manually force channel assignment for testing
+# APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment_II
+# CHANNEL 30 5 3 1 3 180 6 1 -50 manual ChannelAssignment_II_Log.txt
 
 ####### Interactive (prompt-based) application, which allows the user to introduce a channel number for each AP throught the keyboard
 # APPLICATION net.floodlightcontroller.odin.applications.ChannelPrompt
