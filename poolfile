@@ -61,9 +61,9 @@ NETWORKS wi5-demo
 
 ####### Smart Ap Selection params
 ####### SMARTAPSELECTION TimeToStart(sec) ScanningInterval(msec) AddedTime(msec) SignalThreshold(dBm) Hysteresis(sec) Alpha(0-1) Pause(sec) Mode TxpowerSTA(dBm) ThReqSTA(kbps) Filename
-####### Mode = RSSI, FF, BALANCER, DETECTOR; Choose between RSSI, FittingnessFactor algorithm, Balancer or Detector modes
+####### Mode = RSSI, FF, BALANCER, JAIN-BALANCER, DETECTOR; Choose between RSSI, FittingnessFactor algorithm, Balancer, Jain's Fairness index Balancer or Detector modes
 # APPLICATION net.floodlightcontroller.odin.applications.SmartApSelection
-# SMARTAPSELECTION 50 200 0 -56 4 0.8 0 DETECTOR 10 2000 SmartApSelectionLog.txt
+# SMARTAPSELECTION 50 200 0 -56 4 0.8 0 JAIN-BALANCER 10 2000 SmartApSelectionLog.txt
 
 ####### Demo Statistics
 # APPLICATION net.floodlightcontroller.odin.applications.DemoStatistics
