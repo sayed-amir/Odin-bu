@@ -441,12 +441,12 @@ public class SmartApSelection extends OdinApplication {
                   if(SMARTAP_PARAMS.mode.equals("RSSI")){
                     System.out.println(" - No Handoff: Rssi Threshold not reached");
                     ps.println("\t\t[No Action] No Handoff: Rssi Threshold not reached"); // Log in file
-                  }else if(SMARTAP_PARAMS.mode.equals("BALANCER")){
-                    System.out.println(" - Assigned by BALANCER");
-                    ps.println("\t\t[No Action] No Handoff: Assigned by BALANCER"); // Log in file
-                  }else{
+                  }else if(SMARTAP_PARAMS.mode.equals("DETECTOR")){
                     System.out.println(" - Assigned by DETECTOR");
                     ps.println("\t\t[No Action] No Handoff: Assigned by DETECTOR"); // Log in file
+                  }else{
+                    System.out.println(" - Assigned by BALANCER");
+                    ps.println("\t\t[No Action] No Handoff: Assigned by BALANCER"); // Log in file
                   }
                 }
               }else{
@@ -584,18 +584,25 @@ public class SmartApSelection extends OdinApplication {
           }
           System.out.println("\033[K\r[SmartAPSelection] ====================");
         }
-        if(SMARTAP_PARAMS.mode.equals("BALANCER")){
+        if((SMARTAP_PARAMS.mode.equals("BALANCER"))||(SMARTAP_PARAMS.mode.equals("JAIN-BALANCER"))){
 
           Map<MACAddress, InetAddress> assignedClients = new HashMap<MACAddress, InetAddress> (); // Array with the balancer decission
 
           System.out.println("\033[K\r[SmartAPSelection] ====================");
-          System.out.println(showAPsLine + " - Balancer\033[00m");
-          System.out.print("\033[K\r[SmartAPSelection] ");
-
-          assignedClients = simpleBalancerAlgorithm(rssiData, agentsArray, clients, SMARTAP_PARAMS.signal_threshold); // Very simple balancer algorithm
-          
-          System.out.println("");
-          
+		  if(SMARTAP_PARAMS.mode.equals("JAIN-BALANCER")){
+			  
+		    System.out.println(showAPsLine + " - Jain's Fairness index Balancer\033[00m");
+			System.out.print("\033[K\r[SmartAPSelection] ");
+			assignedClients = jainsFairnessIndex(rssiData, agentsArray, clients, SMARTAP_PARAMS.signal_threshold); // More complex algorithm
+		  
+		  }else{
+			  
+		    System.out.println(showAPsLine + " - Balancer\033[00m");
+			System.out.print("\033[K\r[SmartAPSelection] ");
+			assignedClients = simpleBalancerAlgorithm(rssiData, agentsArray, clients, SMARTAP_PARAMS.signal_threshold); // Very simple balancer algorithm
+            System.out.println("");
+		  
+		  }
           
           for(MACAddress eth:assignedClients.keySet()){
           
@@ -960,5 +967,125 @@ public class SmartApSelection extends OdinApplication {
       }
       ind_aux++;
     }
+  }
+  private Map<MACAddress, InetAddress> jainsFairnessIndex(Map<MACAddress, Double[]> rssiData, InetAddress[] agentsArray, HashSet<OdinClient> clients, Double threshold){ // Print load in each AP and returns array of agents to assign
+
+    int ind_aux = 0;
+	int agent_index = 0;
+    int[] numStasPerAgent = new int[agentsArray.length];
+    boolean orderHandoff = false;
+    Map<MACAddress, InetAddress> arrayHandoff = new HashMap<MACAddress, InetAddress> ();
+	Map<InetAddress, Integer> agentIndex = new HashMap<InetAddress, Integer> ();
+	
+    HashSet<OdinClient> clients_Balancer;
+
+    int num_clients = clients.size();
+    
+    for (InetAddress agentAddrBalancer: agentsArray) { // Create array with number of STAs for each AP and print it
+
+      clients_Balancer = new HashSet<OdinClient>(getClientsFromAgent(agentAddrBalancer));
+
+      int numberOfStas = clients_Balancer.size();
+
+      numStasPerAgent[ind_aux] = numberOfStas;
+	  
+	  System.out.print("[  "+numberOfStas+"   ]");
+	  
+	  agentIndex.put(agentAddrBalancer,ind_aux);
+
+      ind_aux++;
+    }
+	System.out.println("");
+    
+	
+	for (OdinClient oc: clients) { // For each STA
+		
+		Double[] client_dBm = new Double[num_agents];
+        MACAddress eth = oc.getMacAddress();
+        InetAddress clientAddr = oc.getIpAddress();
+		InetAddress clientAgent = oc.getLvap().getAgent().getIpAddress();
+		int agent_index_assoc = agentIndex.get(clientAgent);
+		double maxFI = 0;
+		int index_maxFI = 0;
+		
+		
+		Double[] fairnessIndex = new Double[num_agents];
+		
+        if(clientAddr.equals(nullAddr))// If client not assigned, next one
+          continue;
+		  
+        client_dBm = rssiData.get(eth);
+		
+        if (client_dBm != null){
+			
+			for (InetAddress agentAddrBalancer: agentsArray) { // For each AP
+			
+				ind_aux = 0;
+				double sum = 0;
+		
+				if(clientAgent.equals(agentAddrBalancer)){ // numSTAs not changed
+				
+					for(int stas: numStasPerAgent){
+						
+						sum = sum + Math.pow(stas, 2);
+					
+					}
+					
+					fairnessIndex[agentIndex.get(agentAddrBalancer)] = num_clients / (num_agents*sum);
+					
+ 
+				}else{ // numSTAs changed
+				
+					agent_index = agentIndex.get(agentAddrBalancer);
+				
+					for(int stas: numStasPerAgent){
+						
+						if(agent_index == ind_aux){
+							sum = sum + Math.pow(stas+1, 2);
+						}else if(agent_index_assoc == ind_aux){
+							sum = sum + Math.pow(stas-1, 2);
+						}else{
+							sum = sum + Math.pow(stas, 2);
+						}
+						
+						ind_aux++;
+					
+					}
+					
+					fairnessIndex[agentIndex.get(agentAddrBalancer)] = num_clients / (num_agents*sum);
+
+				}
+				if((fairnessIndex[agentIndex.get(agentAddrBalancer)]>maxFI)&&(client_dBm[agentIndex.get(agentAddrBalancer)]>SMARTAP_PARAMS.signal_threshold)){
+					maxFI = fairnessIndex[agentIndex.get(agentAddrBalancer)];
+					index_maxFI = agentIndex.get(agentAddrBalancer);
+				}
+			}
+			
+			ind_aux = 0;
+			
+			System.out.print("\033[K\r[SmartAPSelection] ");
+			for (Double fair_index: fairnessIndex) {
+				
+				if(ind_aux==agent_index_assoc){ // Green  
+					System.out.print("[\033[48;5;29;1m " + String.format("%.2f",fair_index)+" \033[00m]");
+				}else if(ind_aux==index_maxFI){ // Red
+					System.out.print("[\033[48;5;88m " + String.format("%.2f",fair_index)+" \033[00m]");
+				}else{ // Other
+					System.out.print("[ " + String.format("%.2f",fair_index)+" ]");
+				}
+				ind_aux++;
+            }
+			System.out.print(" - "+clientAddr);
+			if((client_dBm[index_maxFI]>SMARTAP_PARAMS.signal_threshold)&&(index_maxFI!=agent_index_assoc)){
+				arrayHandoff.put(eth,agentsArray[index_maxFI]);
+				System.out.println("\033[0;1m - Handoff ordered\033[00m");
+				break; // FIXME: allow several handoffs ordered at the same time
+			}else{
+				System.out.println("");
+			}
+        }
+	}
+	
+    return arrayHandoff;
   }
 }
