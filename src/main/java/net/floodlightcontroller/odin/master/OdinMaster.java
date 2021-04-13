@@ -1312,6 +1312,32 @@ public class OdinMaster implements IFloodlightModule, IOFSwitchListener, IOdinMa
 						continue;
 					}
 					
+					if (fields[0].equals("SECUREAPSELECTION")){							// SMART AP SELECTION
+                        if(fields.length==12){// Filename added in poolfile
+                            smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]), fields[8],Integer.parseInt(fields[9]), Double.parseDouble(fields[10]), fields[11]);
+                        }else{
+                            smartap_params = new SmartApSelectionParams(Integer.parseInt(fields[1]),Integer.parseInt(fields[2]),Integer.parseInt(fields[3]),Double.parseDouble(fields[4]),Long.parseLong(fields[5]), Double.parseDouble(fields[6]),Integer.parseInt(fields[7]), fields[8],Integer.parseInt(fields[9]), Double.parseDouble(fields[10]), "");
+                        }
+						log.info("SmartApSelection configured:");
+						log.info("\t\tTime_to_start: " + smartap_params.time_to_start);
+						log.info("\t\tScanning_interval: " + smartap_params.scanning_interval);
+						log.info("\t\tAdded_time: " + smartap_params.added_time);
+						log.info("\t\tSignal_threshold: " + smartap_params.signal_threshold);
+						log.info("\t\tHysteresis_threshold: " + smartap_params.hysteresis_threshold);
+						log.info("\t\tPrevius_data_weight (alpha): " + smartap_params.weight);
+						log.info("\t\tPause between scans: " + smartap_params.pause);
+						log.info("\t\tMode: " + smartap_params.mode);
+						log.info("\t\tTxpowerSTA: " + smartap_params.txpowerSTA);
+						log.info("\t\tThReqSTA: " + smartap_params.thReqSTA);
+						if(smartap_params.filename.length()>0){
+                            log.info("\t\tFilename: " + smartap_params.filename);
+                        }else{
+                            log.info("\t\tFilename not assigned");
+                        }
+						br.mark(1000);
+						continue;
+					}
+					
 					if (fields[0].equals("VIPAP")){							// VIP AGENT
 						vip_ap_ip_address = fields[1];
 						log.info("VIP AP ip address " + vip_ap_ip_address);

@@ -1,6 +1,7 @@
 # Pool-1
 NAME pool-1
-NODES 192.168.1.13 192.168.1.14 192.168.1.15
+NODES 192.168.2.2 192.168.2.3
+#NODES 192.168.2.3
 NETWORKS wi5-demo
 
 ####### Now applications and its parameters are defined ######
@@ -11,7 +12,7 @@ NETWORKS wi5-demo
 # DETECTION 192.168.1.200
 
 ####### ShowStatistics
-# APPLICATION net.floodlightcontroller.odin.applications.ShowStatistics
+#APPLICATION net.floodlightcontroller.odin.applications.ShowStatistics
 
 ####### SimpleLoadBalancer
 # APPLICATION net.floodlightcontroller.odin.applications.SimpleLoadBalancer
@@ -23,8 +24,8 @@ NETWORKS wi5-demo
 
 ####### ShowScannedStationsStatistics params - Optional filename to save statistics
 ####### INTERFERENCES TimeToStart(sec) ReportingPeriod(sec) ScanningInterval(sec) AddedTime(sec) Filename
-# APPLICATION net.floodlightcontroller.odin.applications.ShowScannedStationsStatistics
-# INTERFERENCES 30 30 5 1 ScannedStationsStatistics.txt
+#APPLICATION net.floodlightcontroller.odin.applications.ShowScannedStationsStatistics
+#INTERFERENCES 30 30 5 1 ScannedStationsStatistics.txt
 
 ####### ShowMatrixOfDistancedBs params
 ####### MATRIX TimeToStart(sec) ReportingPeriod(sec) ScanningInterval(sec) AddedTime(sec) Channel
@@ -43,8 +44,8 @@ NETWORKS wi5-demo
 ####### CHANNEL TimeToStart(sec) PauseBetweenScans(sec) ScanningInterval(sec) AddedTime(sec) NumberOfScans IdleTime(sec) Channel Method Threshold Mode Filename
 ####### Method = 1 : Wi5, 2 : RANDOM, 3 : LCC  ;
 ####### Mode = auto, manual : it allows to manually force channel assignment for testing
-# APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment
-# CHANNEL 30 5 3 1 3 180 6 1 -50 manual ChannelAssignmentLog.txt
+#APPLICATION net.floodlightcontroller.odin.applications.ChannelAssignment
+#CHANNEL 100 5 3 1 3 180 6 1 -50 manual ChannelAssignmentLog.txt
 
 ####### ChannelAssignment with External Interference Impact params
 ####### CHANNEL TimeToStart(sec) PauseBetweenScans(sec) ScanningInterval(sec) AddedTime(sec) NumberOfScans Timeout(sec) Channel Method Threshold Mode Filename
@@ -62,11 +63,19 @@ NETWORKS wi5-demo
 ####### Smart Ap Selection params
 ####### SMARTAPSELECTION TimeToStart(sec) ScanningInterval(msec) AddedTime(msec) SignalThreshold(dBm) Hysteresis(sec) Alpha(0-1) Pause(sec) Mode TxpowerSTA(dBm) ThReqSTA(kbps) Filename
 ####### Mode = RSSI, FF, BALANCER, JAIN-BALANCER, DETECTOR; Choose between RSSI, FittingnessFactor algorithm, Balancer, Jain's Fairness index Balancer or Detector modes
-# APPLICATION net.floodlightcontroller.odin.applications.SmartApSelection
-# SMARTAPSELECTION 50 200 0 -56 4 0.8 0 JAIN-BALANCER 10 2000 SmartApSelectionLog.txt
+#APPLICATION net.floodlightcontroller.odin.applications.SmartApSelection
+#SMARTAPSELECTION 60 200 0 -56 4 0.8 0 RSSI 10 2000 SmartApSelectionLog.txt
+
+
+####### Secure Ap Selection params
+####### SMARTAPSELECTION TimeToStart(sec) ScanningInterval(msec) AddedTime(msec) SignalThreshold(dBm) Hysteresis(sec) Alpha(0-1) Pause(sec) Mode TxpowerSTA(dBm) ThReqSTA(kbps) Filename
+####### Mode = RSSI, FF, BALANCER, JAIN-BALANCER, DETECTOR; Choose between RSSI, FittingnessFactor algorithm, Balancer, Jain's Fairness index Balancer or Detector modes
+APPLICATION net.floodlightcontroller.odin.applications.SecureApSelection
+SECUREAPSELECTION 60 500 200 -56 4 0.8 0 RSSI 10 2000 SecureApSelectionLog.txt
+
 
 ####### Demo Statistics
-# APPLICATION net.floodlightcontroller.odin.applications.DemoStatistics
+#APPLICATION net.floodlightcontroller.odin.applications.DemoStatistics
 
 ####### VIP AP IP Address
 # VIPAP 192.168.1.14

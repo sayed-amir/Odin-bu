@@ -300,6 +300,16 @@ public class SmartApSelection extends OdinApplication {
             // Agent non busy, so we recover the information
             vals_rx[channel][agent] = getScannedStaRssiFromAgent(agentAddr);
             agent++;
+            
+            /////Amir's comments
+           // System.out.println("\033[K\r [channel is " + channel);
+            //System.out.println("\033[K\r [agent is " + agent);
+           // System.out.println("\033[K\r [values of RSSI are " + Arrays.deepToString(vals_rx));
+           // System.out.println("\033[K\r [power is " + getTxPowerFromAgent((agentAddr)));
+            
+            
+            
+            
           }
           //Thread.sleep(200); // Give some time to the AP
         }
@@ -321,13 +331,16 @@ public class SmartApSelection extends OdinApplication {
           for ( ind_aux = 0; ind_aux < num_agents; ind_aux++){// For 
 
             String arr = vals_rx[client_channel][ind_aux]; // String with "MAC rssi\nMAC rssi\n..."
+            //System.out.println("\033[K\r [amir's debug] arr is " + arr + ". eth="+ eth);
 
             Double rssi = getRssiFromRxStats(eth,arr); // rssi or -99.9
+            //System.out.println("\033[K\r [amir's debug] RSSI from erray based on eth is " + rssi + ". agent number is " + ind_aux);
 
             Double[] client_average_dBm = new Double[num_agents];
 
             // get the stored RSSI averaged value (historical data)
             client_average_dBm = rssiData.get(eth);
+            //System.out.println("\033[K\r [amir's debug] rssi of agent is " + rssi + " dB and client_average_dBm is " + Arrays.toString(client_average_dBm)  + " dbm");
 
             if (client_average_dBm == null){// First time STA is associated
 
@@ -351,8 +364,7 @@ public class SmartApSelection extends OdinApplication {
               }
             }
             rssiData.put(eth,client_average_dBm); // Store all the data
-          }
-          client_index++;
+          }          client_index++;
         }
         System.out.println("\033[K\r[SmartAPSelection] Processing done in: " + (System.currentTimeMillis()-time) + " ms");
         System.out.println("\033[K\r[SmartAPSelection] ====================");
@@ -768,7 +780,7 @@ public class SmartApSelection extends OdinApplication {
           }
         }
         ps.flush();
-        System.out.println("\033[K\r[SmartAPSelection] Assignation done in: " + (System.currentTimeMillis()-time) + " ms");
+        System.out.println("\033[K\r[SmartAPSelection] Assignation done innn: " + (System.currentTimeMillis()-time) + " ms");
         System.out.println("\033[K\r[SmartAPSelection] ====================");
         System.out.println("\033[K\r");
         Thread.sleep(SMARTAP_PARAMS.pause); // If a pause or a period is needed
