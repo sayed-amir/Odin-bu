@@ -117,7 +117,8 @@ public class SecureApSelection extends OdinApplication {
       }
     }
     MACAddress evdpMACaddr = null;
-    evdpMACaddr = MACAddress.valueOf("78:31:C1:EC:AE:90");
+    //evdpMACaddr = MACAddress.valueOf("78:31:C1:EC:AE:90");
+    evdpMACaddr = MACAddress.valueOf("1C:BF:C0:78:DA:63");
     //evdpMACaddr = MACAddress.valueOf("D0:37:45:47:F2:D9");
 
     agents = getAgents(); // Fill the array of agents
