@@ -326,11 +326,11 @@ public class SecureApSelection extends OdinApplication {
 
             Double rssi = getRssiFromRxStats(eth,arr); // rssi or -99.9
             evdpRSSIReader = getAnotherRSSI(AgentsIP[ind_aux], evdpMACaddr);
-            ps.println("\t [amir] RSSI of eavesdroper " + evdpMACaddr + " is " + evdpRSSIReader  + " dbm at agent " + AgentsIP[ind_aux]); // Log in file
+            ps.println("\t [amir] \t" + (System.currentTimeMillis()) + "\t RSSI of eavesdroper " + evdpMACaddr + " is " + evdpRSSIReader  + " dbm at agent " + AgentsIP[ind_aux]); // Log in file
             if (evdpRSSIReader!=null)
             	evdpRSSI[ind_aux] = evdpRSSIReader;
             Double rssiNew = getAnotherRSSI(AgentsIP[ind_aux], eth);
-            ps.println("\t [amir] New RSSI of user " + eth + " is " + rssiNew + " dbm at agent " + AgentsIP[ind_aux]); // Log in file
+            ps.println("\t [amir] \t " + (System.currentTimeMillis()) + "\t New RSSI of user " + eth + " is " + rssiNew + " dbm at agent " + AgentsIP[ind_aux]); // Log in file
             Double[] client_average_dBm = new Double[num_agents];
             if (rssiNew != null)
             	rssi = rssiNew;
